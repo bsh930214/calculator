@@ -1,0 +1,2034 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>계산모음</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0f13;
+    --surface: #161820;
+    --surface2: #1e2028;
+    --surface3: #252830;
+    --border: #2a2d38;
+    --text: #f0f1f5;
+    --text2: #9499aa;
+    --text3: #5a5f72;
+    --accent: #6c6fff;
+    --accent2: #4fffb0;
+    --accent3: #ff6b6b;
+    --life: #f7c948;
+    --finance: #4fffb0;
+    --health: #ff7eb3;
+    --radius: 16px;
+    --radius-sm: 10px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  input[type=number]::-webkit-inner-spin-button,
+  input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+  input[type=number] { -moz-appearance:textfield; }
+  html { height:100%; }
+  body { width:100%; height:100%; background:var(--bg); color:var(--text); font-family:'Pretendard', sans-serif; overflow:hidden; }
+
+  /* ── APP SHELL ── */
+  #app { width:100%; max-width:430px; height:100%; margin:0 auto; position:relative; overflow:hidden; }
+
+  /* ── SCREENS ── */
+  .screen { position:absolute; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; background:var(--bg); overflow:hidden; }
+  .screen.hidden { display:none; }
+
+  /* ── TOP SAFE AREA ── */
+  .safe-top { height: env(safe-area-inset-top, 44px); min-height: 44px; flex-shrink:0; }
+
+  /* ══════════════ HOME SCREEN ══════════════ */
+  #home { }
+  .home-header { padding: 18px 20px 6px; }
+  .home-title { font-size: 26px; font-weight:700; letter-spacing:-0.5px; }
+  .home-title span { color:var(--accent); }
+
+  /* search bar */
+  .search-bar { display:flex; align-items:center; gap:10px; background:var(--surface2); border:1.5px solid var(--border); border-radius:14px; padding:13px 16px; cursor:pointer; margin:14px 0; transition:border-color .2s; }
+  .search-bar:hover { border-color:var(--accent); }
+  .search-bar svg { color:var(--text3); flex-shrink:0; }
+  .search-bar span { color:var(--text3); font-size:15px; }
+
+  /* sections */
+  .home-scroll { flex:1; overflow-y:auto; padding-bottom:30px; }
+  .home-scroll::-webkit-scrollbar { display:none; }
+  .section-label { font-size:12px; font-weight:600; color:var(--text3); letter-spacing:.08em; text-transform:uppercase; margin:22px 0 10px; }
+
+  /* favorite & recommend cards */
+  .card-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .calc-card { background:var(--surface); border:1.5px solid var(--border); border-radius:var(--radius); padding:16px; cursor:pointer; transition:all .18s; position:relative; overflow:hidden; }
+  .calc-card:active { transform:scale(.97); }
+  .calc-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg, rgba(255,255,255,.03), transparent); pointer-events:none; }
+  .calc-card .card-icon { font-size:24px; margin-bottom:10px; }
+  .calc-card .card-name { font-size:13px; font-weight:600; color:var(--text); }
+  .calc-card .card-cat { font-size:11px; color:var(--text3); margin-top:2px; }
+  .calc-card .star-btn { position:absolute; top:10px; right:10px; background:none; border:none; cursor:pointer; font-size:16px; opacity:.4; transition:all .15s; padding:2px; color:var(--text3); }
+  .calc-card .star-btn.active { opacity:1; color:#f7c948; }
+  .calc-card.fav-card { border-color:rgba(108,111,255,.3); background:linear-gradient(135deg, rgba(108,111,255,.08), var(--surface)); }
+
+  /* category dot */
+  .cat-dot { display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:5px; vertical-align:middle; }
+  .cat-life { background:var(--life); }
+  .cat-finance { background:var(--finance); }
+  .cat-health { background:var(--health); }
+
+  /* ══════════════ LIST SCREEN ══════════════ */
+  #list { }
+  .list-header { padding:16px 20px 12px; flex-shrink:0; }
+  .list-nav { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  .back-btn { display:flex; align-items:center; gap:5px; background:none; border:none; color:var(--text2); font-size:14px; cursor:pointer; padding:0; font-family:inherit; flex-shrink:0; }
+  .back-btn svg { color:var(--accent); }
+  .list-search-row { display:flex; align-items:center; gap:8px; }
+  .list-search { display:flex; align-items:center; gap:10px; flex:1; background:var(--surface2); border:1.5px solid var(--accent); border-radius:14px; padding:12px 14px; }
+  .list-search input { flex:1; background:none; border:none; outline:none; color:var(--text); font-size:15px; font-family:inherit; min-width:0; }
+  .list-search input::placeholder { color:var(--text3); }
+  .search-go-btn { flex-shrink:0; background:var(--accent); border:none; border-radius:12px; padding:12px 16px; color:#fff; font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .15s; white-space:nowrap; }
+  .search-go-btn:active { opacity:.8; transform:scale(.97); }
+
+  /* filter tabs */
+  .filter-row { display:flex; gap:8px; padding:0 20px 12px; overflow-x:auto; flex-shrink:0; }
+  .filter-row::-webkit-scrollbar { display:none; }
+  .filter-tab { flex-shrink:0; padding:7px 16px; border-radius:20px; border:1.5px solid var(--border); background:var(--surface); font-size:13px; font-weight:500; color:var(--text2); cursor:pointer; transition:all .15s; font-family:inherit; }
+  .filter-tab.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .filter-tab.tab-life.active { background:var(--life); border-color:var(--life); color:#000; }
+  .filter-tab.tab-finance.active { background:var(--finance); border-color:var(--finance); color:#000; }
+  .filter-tab.tab-health.active { background:var(--health); border-color:var(--health); color:#000; }
+
+  /* list grid — 2 per row */
+  .calc-list { flex:1; overflow-y:auto; padding:0 20px 30px; }
+  .calc-list::-webkit-scrollbar { display:none; }
+  .calc-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .grid-card { background:var(--surface); border:1.5px solid var(--border); border-radius:var(--radius); padding:14px; cursor:pointer; transition:all .18s; position:relative; overflow:hidden; }
+  .grid-card:active { transform:scale(.97); border-color:var(--accent); }
+  .grid-card::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg,rgba(255,255,255,.03),transparent); pointer-events:none; }
+  .grid-card.fav-grid { border-color:rgba(108,111,255,.3); background:linear-gradient(135deg,rgba(108,111,255,.08),var(--surface)); }
+  .grid-card .gc-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:8px; }
+  .grid-card .gc-icon { font-size:22px; line-height:1; }
+  .grid-card .gc-star { background:none; border:none; cursor:pointer; font-size:16px; color:var(--text3); opacity:.45; transition:all .15s; padding:0; line-height:1; }
+  .grid-card .gc-star.active { opacity:1; color:#f7c948; }
+  .grid-card .gc-name { font-size:13px; font-weight:600; color:var(--text); line-height:1.3; }
+  .grid-card .gc-cat { font-size:11px; color:var(--text3); margin-top:3px; }
+  .no-result { text-align:center; padding:60px 20px; color:var(--text3); font-size:14px; }
+
+  /* ══════════════ CALC SCREEN ══════════════ */
+  #calc { padding:0; }
+  .calc-header { display:flex; align-items:center; gap:12px; padding:16px 20px; flex-shrink:0; border-bottom:1px solid var(--border); }
+  .calc-header .back-btn { margin:0; }
+  .calc-header .calc-title { font-size:17px; font-weight:700; flex:1; }
+  .calc-header .fav-toggle { background:none; border:none; cursor:pointer; font-size:20px; opacity:.5; transition:opacity .15s; }
+  .calc-header .fav-toggle.active { opacity:1; }
+  .calc-body { flex:1; overflow-y:auto; padding:20px; }
+  .calc-body::-webkit-scrollbar { display:none; }
+
+  /* inputs */
+  .field { margin-bottom:16px; }
+  .field label { display:block; font-size:12px; font-weight:600; color:var(--text2); letter-spacing:.05em; margin-bottom:6px; }
+  .field input, .field select { width:100%; background:var(--surface2); border:1.5px solid var(--border); border-radius:10px; padding:13px 14px; color:var(--text); font-size:15px; font-family:inherit; outline:none; transition:border-color .2s; appearance:none; }
+  .field input:focus, .field select:focus { border-color:var(--accent); }
+  /* hide number spinners */
+  .field input[type=number]::-webkit-inner-spin-button,
+  .field input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
+  .field input[type=number] { -moz-appearance:textfield; }
+  .field select { background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239499aa' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 14px center; padding-right:36px; }
+  .field-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+  /* radio group */
+  .radio-group { display:flex; gap:8px; }
+  .radio-group label { flex:1; display:flex; align-items:center; justify-content:center; gap:6px; background:var(--surface2); border:1.5px solid var(--border); border-radius:10px; padding:11px; cursor:pointer; font-size:13px; font-weight:500; transition:all .15s; }
+  .radio-group input[type=radio] { display:none; }
+  .radio-group input[type=radio]:checked + span { color:var(--accent); }
+  .radio-group label:has(input:checked) { border-color:var(--accent); background:rgba(108,111,255,.1); }
+
+  /* calc button */
+  .calc-btn { width:100%; background:var(--accent); border:none; border-radius:12px; padding:16px; color:#fff; font-size:16px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .15s; margin-top:4px; }
+  .calc-btn:active { transform:scale(.98); opacity:.9; }
+
+  /* result box */
+  .result-box { background:var(--surface2); border:1.5px solid var(--border); border-radius:var(--radius); padding:20px; margin-top:20px; display:none; }
+  .result-box.show { display:block; animation: fadeUp .25s ease; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+  .result-main { font-size:28px; font-weight:700; font-family:'Space Mono', monospace; color:var(--accent2); margin-bottom:4px; word-break:break-all; }
+  .result-sub { font-size:13px; color:var(--text2); line-height:1.6; }
+  .result-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-top:1px solid var(--border); margin-top:8px; }
+  .result-row .rk { font-size:13px; color:var(--text2); }
+  .result-row .rv { font-size:14px; font-weight:600; color:var(--text); font-family:'Space Mono', monospace; }
+  .result-row .rv.accent { color:var(--accent2); }
+
+  /* dutch pay */
+  .dutch-rounds { display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .round-tab { padding:7px 14px; border-radius:20px; border:1.5px solid var(--border); background:var(--surface); font-size:13px; font-weight:600; color:var(--text2); cursor:pointer; transition:all .15s; font-family:inherit; white-space:nowrap; }
+  .round-tab.active { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .round-add-btn { padding:7px 14px; border-radius:20px; border:1.5px dashed var(--border); background:transparent; font-size:13px; color:var(--text3); cursor:pointer; font-family:inherit; transition:all .15s; }
+  .round-add-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+  .people-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+  .person-chip { display:flex; align-items:center; gap:0; background:var(--surface2); border:1.5px solid var(--border); border-radius:10px; overflow:hidden; transition:border-color .15s; }
+  .person-chip:focus-within { border-color:var(--accent); }
+  .person-chip input { flex:1; background:none; border:none; outline:none; color:var(--text); font-size:14px; font-family:inherit; padding:11px 12px; min-width:0; }
+  .person-chip input::placeholder { color:var(--text3); }
+  .person-chip .chip-join { display:flex; flex-direction:column; gap:1px; padding:0 10px 0 4px; }
+  .person-chip .chip-join button { background:none; border:none; cursor:pointer; font-size:10px; padding:2px 3px; border-radius:3px; transition:all .12s; line-height:1; }
+  .person-chip .chip-del { background:none; border:none; border-left:1px solid var(--border); padding:0 10px; color:var(--text3); font-size:13px; cursor:pointer; align-self:stretch; display:flex; align-items:center; transition:all .15s; }
+  .person-chip .chip-del:hover { color:var(--accent3); background:rgba(255,107,107,.08); }
+
+  .dutch-add-person { width:100%; background:var(--surface2); border:1.5px dashed var(--border); border-radius:10px; padding:11px; color:var(--text3); font-size:13px; cursor:pointer; font-family:inherit; transition:all .15s; margin-bottom:16px; display:flex; align-items:center; justify-content:center; gap:6px; }
+  .dutch-add-person:hover { border-color:var(--accent); color:var(--accent); }
+
+  .dutch-amount-row { display:flex; gap:8px; align-items:flex-end; margin-bottom:16px; }
+  .dutch-amount-row .field { flex:1; margin-bottom:0; }
+  .dutch-amount-row .field input { }
+
+  .dutch-result-round { margin-top:14px; }
+  .dutch-result-round .round-label { font-size:11px; font-weight:700; color:var(--text3); letter-spacing:.08em; text-transform:uppercase; margin-bottom:6px; padding-bottom:6px; border-bottom:1px solid var(--border); }
+  .dutch-total-bar { display:flex; justify-content:space-between; align-items:center; background:rgba(108,111,255,.1); border:1.5px solid rgba(108,111,255,.25); border-radius:10px; padding:12px 14px; margin-bottom:8px; }
+  .dutch-total-bar .dtb-label { font-size:13px; color:var(--text2); }
+  .dutch-total-bar .dtb-val { font-size:16px; font-weight:700; color:var(--accent); font-family:'Space Mono',monospace; }
+  .add-btn { width:100%; background:var(--surface2); border:1.5px solid var(--border); border-radius:10px; padding:11px; color:var(--text2); font-size:14px; cursor:pointer; font-family:inherit; transition:all .15s; margin-bottom:16px; }
+  .add-btn:hover { border-color:var(--accent); color:var(--accent); }
+
+  /* pace split table */
+  .pace-table { width:100%; border-collapse:collapse; margin-top:12px; }
+  .pace-table th { font-size:11px; font-weight:600; color:var(--text3); text-align:left; padding:6px 8px; border-bottom:1px solid var(--border); }
+  .pace-table td { font-size:13px; padding:8px; border-bottom:1px solid rgba(255,255,255,.04); font-family:'Space Mono',monospace; }
+  .pace-table tr:last-child td { border:none; }
+
+  /* empty fav */
+  .empty-fav { text-align:center; padding:18px; background:var(--surface); border:1.5px dashed var(--border); border-radius:var(--radius); color:var(--text3); font-size:13px; }
+
+  /* ── 기본/공학 계산기 공통 ── */
+  .calc-display { background:var(--surface2); border:1.5px solid var(--border); border-radius:14px; padding:16px 18px 14px; margin-bottom:14px; min-height:90px; display:flex; flex-direction:column; justify-content:flex-end; align-items:flex-end; gap:4px; overflow:hidden; }
+  .calc-display .disp-expr { font-size:14px; color:var(--text3); font-family:'Space Mono',monospace; min-height:18px; word-break:break-all; text-align:right; }
+  .calc-display .disp-val { font-size:36px; font-weight:700; font-family:'Space Mono',monospace; color:var(--text); word-break:break-all; text-align:right; line-height:1.1; transition:font-size .1s; }
+  .calc-display .disp-val.small { font-size:24px; }
+  .calc-display .disp-val.xsmall { font-size:18px; }
+
+  /* button grid */
+  .btn-grid { display:grid; gap:8px; }
+  .btn-grid.cols4 { grid-template-columns:repeat(4,1fr); }
+  .btn-grid.cols5 { grid-template-columns:repeat(5,1fr); }
+  .ckey { border:none; border-radius:12px; font-family:'Space Mono','Pretendard',sans-serif; font-size:17px; font-weight:700; cursor:pointer; transition:all .12s; aspect-ratio:1; display:flex; align-items:center; justify-content:center; user-select:none; -webkit-user-select:none; }
+  .ckey:active { transform:scale(.93); opacity:.85; }
+  .ckey.k-num  { background:var(--surface3); color:var(--text);    font-size:20px; }
+  .ckey.k-op   { background:#2a2e42;        color:var(--accent);   font-size:18px; }
+  .ckey.k-eq   { background:var(--accent);  color:#fff; }
+  .ckey.k-fn   { background:var(--surface2); color:var(--text2);   font-size:13px; }
+  .ckey.k-clr  { background:#2e1e1e;        color:var(--accent3);  }
+  .ckey.k-zero { aspect-ratio:unset; border-radius:12px; padding:0 22px; justify-content:flex-start; }
+  .ckey.k-sci  { background:var(--surface2); color:#b8bcff; font-size:12px; font-weight:600; font-family:'Pretendard',sans-serif; }
+  .ckey.k-shift-on { background:rgba(108,111,255,.25); color:#fff; }
+  .calc-body.no-pad { padding:14px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- ══ HOME ══ -->
+<div class="screen" id="home">
+  <div class="safe-top"></div>
+  <div class="home-header">
+    <div class="home-title"><span>계산기</span> 모음</div>
+  </div>
+  <div style="padding:0 20px">
+    <div class="search-bar" onclick="openList()">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <span>계산기 검색</span>
+    </div>
+  </div>
+  <div class="home-scroll" style="padding:0 20px">
+    <div class="section-label">⭐ 즐겨찾기</div>
+    <div id="fav-section"></div>
+    <div class="section-label">🔥 추천</div>
+    <div class="card-row" id="rec-section"></div>
+    <div style="height:10px"></div>
+  </div>
+</div>
+
+<!-- ══ LIST ══ -->
+<div class="screen hidden" id="list">
+  <div class="safe-top"></div>
+  <div class="list-header">
+    <div class="list-nav">
+      <button class="back-btn" onclick="goHome()">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+        홈
+      </button>
+    </div>
+    <div class="list-search-row">
+      <div class="list-search">
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="color:var(--text3);flex-shrink:0"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input id="list-input" placeholder="계산기 검색..." oninput="filterList()" onkeydown="if(event.key==='Enter')filterList()">
+      </div>
+    </div>
+  </div>
+  <div class="filter-row">
+    <button class="filter-tab active" onclick="setFilter('all',this)">전체</button>
+    <button class="filter-tab tab-life" onclick="setFilter('life',this)">🟡 생활</button>
+    <button class="filter-tab tab-finance" onclick="setFilter('finance',this)">🟢 금융</button>
+    <button class="filter-tab tab-health" onclick="setFilter('health',this)">🩷 건강</button>
+  </div>
+  <div class="calc-list" id="calc-list"></div>
+</div>
+
+<!-- ══ CALC ══ -->
+<div class="screen hidden" id="calc">
+  <div class="safe-top"></div>
+  <div class="calc-header">
+    <button class="back-btn" id="calc-back">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <div class="calc-title" id="calc-title"></div>
+    <button class="fav-toggle" id="fav-toggle" onclick="toggleFavCurrent()">☆</button>
+  </div>
+  <div class="calc-body" id="calc-body"></div>
+</div>
+
+</div>
+
+<script>
+// ══════════════════════════════════
+// DATA
+// ══════════════════════════════════
+const CALCS = [
+  { id:'basic', name:'바로 계산', cat:'life', icon:'🧮', desc:'사칙연산 계산기', bg:'bg-life' },
+  { id:'sci', name:'공학용 계산기', cat:'life', icon:'📐', desc:'삼각함수·로그·지수', bg:'bg-life' },
+  { id:'tip', name:'팁 계산기', cat:'life', icon:'🤝', desc:'팁 금액·인원 분배', bg:'bg-life' },
+  { id:'unit', name:'단위 변환', cat:'life', icon:'📏', desc:'길이·무게·온도·속도', bg:'bg-life' },
+  { id:'ratio', name:'비율 계산기', cat:'life', icon:'⚖️', desc:'x:y = A:B 비례식', bg:'bg-life' },
+  { id:'dutch', name:'더치페이', cat:'life', icon:'🍽️', desc:'N빵 계산', bg:'bg-life' },
+  { id:'dday', name:'D-day', cat:'life', icon:'📅', desc:'특정 날짜까지 D-day', bg:'bg-life' },
+  { id:'daysfrom', name:'오늘 기준 며칠', cat:'life', icon:'📆', desc:'두 날짜 사이 일수', bg:'bg-life' },
+  { id:'age', name:'만 나이 계산', cat:'life', icon:'🎂', desc:'만 나이 + 띠', bg:'bg-life' },
+  { id:'discount', name:'할인율 계산기', cat:'life', icon:'🏷️', desc:'할인가·역산 포함', bg:'bg-life' },
+  { id:'savings', name:'적금 이자', cat:'finance', icon:'🏦', desc:'단리·복리 적금 계산', bg:'bg-finance' },
+  { id:'loan', name:'대출 이자', cat:'finance', icon:'💳', desc:'원리금·원금균등 상환', bg:'bg-finance' },
+  { id:'salary', name:'연봉 실수령액', cat:'finance', icon:'💰', desc:'세전↔세후 환산', bg:'bg-finance' },
+  { id:'annual', name:'시급 환산', cat:'finance', icon:'📊', desc:'연봉·시급·월급 환산', bg:'bg-finance' },
+  { id:'exchange', name:'환율 계산', cat:'finance', icon:'💱', desc:'원화·외화 환산', bg:'bg-finance' },
+  { id:'invest', name:'투자 수익률', cat:'finance', icon:'📈', desc:'수익률·CAGR 계산', bg:'bg-finance' },
+  { id:'acqutax', name:'취득세 계산', cat:'finance', icon:'🏠', desc:'부동산 취득세 추정', bg:'bg-finance' },
+  { id:'carloan', name:'자동차 할부', cat:'finance', icon:'🚗', desc:'할부 원리금·총비용', bg:'bg-finance' },
+  { id:'bmi', name:'BMI 계산', cat:'health', icon:'⚖️', desc:'체질량지수 + 판정', bg:'bg-health' },
+  { id:'calorie', name:'하루 권장 칼로리', cat:'health', icon:'🔥', desc:'TDEE 기반 칼로리', bg:'bg-health' },
+  { id:'zone2', name:'러닝 심박수', cat:'health', icon:'❤️', desc:'유산소 목표 심박수', bg:'bg-health' },
+  { id:'pace', name:'러닝 페이스', cat:'health', icon:'🏃', desc:'페이스·거리·시간 변환', bg:'bg-health' },
+  { id:'orm', name:'1RM 계산', cat:'health', icon:'🏋️', desc:'Epley 공식 1RM', bg:'bg-health' },
+  { id:'water', name:'물 섭취량', cat:'health', icon:'💧', desc:'하루 권장 수분 섭취', bg:'bg-health' },
+];
+
+const CAT_LABEL = { life:'생활', finance:'금융', health:'건강' };
+const CAT_DOT = { life:'cat-life', finance:'cat-finance', health:'cat-health' };
+let favorites = JSON.parse(localStorage.getItem('favs')||'[]');
+let useCounts = JSON.parse(localStorage.getItem('useCounts')||'{}');
+let currentFilter = 'all';
+let currentCalcId = null;
+let fromScreen = 'home';
+
+// ══════════════════════════════════
+// HELPERS
+// ══════════════════════════════════
+function save() {
+  localStorage.setItem('favs', JSON.stringify(favorites));
+  localStorage.setItem('useCounts', JSON.stringify(useCounts));
+}
+function isFav(id) { return favorites.includes(id); }
+function toggleFavHome(id, e) {
+  e && e.stopPropagation();
+  if(isFav(id)) favorites = favorites.filter(f=>f!==id);
+  else favorites.push(id);
+  save(); renderHome();
+}
+function toggleFav(id, e) {
+  e && e.stopPropagation();
+  if(isFav(id)) favorites = favorites.filter(f=>f!==id);
+  else favorites.push(id);
+  save(); renderHome();
+}
+function fmt(n) { return Number(n).toLocaleString('ko-KR'); }
+function fmtMoney(n) { return Math.round(n).toLocaleString('ko-KR')+'원'; }
+
+// ══════════════════════════════════
+// SCREENS
+// ══════════════════════════════════
+function goHome() {
+  document.getElementById('home').classList.remove('hidden');
+  document.getElementById('list').classList.add('hidden');
+  document.getElementById('calc').classList.add('hidden');
+  renderHome();
+}
+function openList() {
+  fromScreen = 'home';
+  document.getElementById('home').classList.add('hidden');
+  document.getElementById('list').classList.remove('hidden');
+  document.getElementById('calc').classList.add('hidden');
+  document.getElementById('list-input').value = '';
+  document.getElementById('calc-list').scrollTop = 0;
+  currentFilter = 'all';
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector('.filter-tab').classList.add('active');
+  renderList();
+  setTimeout(()=>document.getElementById('list-input').focus(),200);
+}
+function openCalc(id) {
+  fromScreen = document.getElementById('list').classList.contains('hidden') ? 'home' : 'list';
+  currentCalcId = id;
+  useCounts[id] = (useCounts[id]||0)+1;
+  save();
+  const c = CALCS.find(x=>x.id===id);
+  document.getElementById('calc-title').textContent = c.icon+' '+c.name;
+  document.getElementById('calc-back').onclick = () => {
+    if(fromScreen==='list') {
+      document.getElementById('home').classList.add('hidden');
+      document.getElementById('list').classList.remove('hidden');
+      document.getElementById('calc').classList.add('hidden');
+    } else { goHome(); }
+  };
+  updateFavToggle();
+  buildCalc(id);
+  document.getElementById('home').classList.add('hidden');
+  document.getElementById('list').classList.add('hidden');
+  document.getElementById('calc').classList.remove('hidden');
+}
+function updateFavToggle() {
+  const btn = document.getElementById('fav-toggle');
+  if(isFav(currentCalcId)) { btn.textContent='★'; btn.classList.add('active'); }
+  else { btn.textContent='☆'; btn.classList.remove('active'); }
+}
+function toggleFavCurrent() {
+  toggleFav(currentCalcId);
+  updateFavToggle();
+  renderHome();
+}
+
+// ══════════════════════════════════
+// HOME RENDER
+// ══════════════════════════════════
+function renderHome() {
+  // favorites
+  const favEl = document.getElementById('fav-section');
+  if(favorites.length===0) {
+    favEl.innerHTML = `<div class="empty-fav">계산기 ☆를 눌러 즐겨찾기에 추가하세요</div>`;
+  } else {
+    const favCalcs = favorites.map(id=>CALCS.find(c=>c.id===id)).filter(Boolean);
+    favEl.innerHTML = `<div class="card-row">${favCalcs.map(c=>`
+      <div class="calc-card fav-card" onclick="openCalc('${c.id}')">
+        <button class="star-btn active" onclick="toggleFavHome('${c.id}',event)">★</button>
+        <div class="card-icon">${c.icon}</div>
+        <div class="card-name">${c.name}</div>
+        <div class="card-cat"><span class="cat-dot ${CAT_DOT[c.cat]}"></span>${CAT_LABEL[c.cat]}</div>
+      </div>`).join('')}</div>`;
+  }
+
+  // recommend — always 4, exclude favorites, sort by usage
+  const recEl = document.getElementById('rec-section');
+  const sorted = [...CALCS].filter(c=>!isFav(c.id)).sort((a,b)=>(useCounts[b.id]||0)-(useCounts[a.id]||0)).slice(0,4);
+  recEl.innerHTML = sorted.map(c=>`
+    <div class="calc-card" onclick="openCalc('${c.id}')">
+      <button class="star-btn ${isFav(c.id)?'active':''}" onclick="toggleFavHome('${c.id}',event)">${isFav(c.id)?'★':'☆'}</button>
+      <div class="card-icon">${c.icon}</div>
+      <div class="card-name">${c.name}</div>
+      <div class="card-cat"><span class="cat-dot ${CAT_DOT[c.cat]}"></span>${CAT_LABEL[c.cat]}</div>
+    </div>`).join('');
+}
+
+// ══════════════════════════════════
+// LIST RENDER
+// ══════════════════════════════════
+function renderList() {
+  const q = (document.getElementById('list-input').value||'').trim().toLowerCase();
+  const filtered = CALCS.filter(c=>{
+    const matchCat = currentFilter==='all' || c.cat===currentFilter;
+    const matchQ = !q || c.name.includes(q) || c.desc.includes(q);
+    return matchCat && matchQ;
+  });
+  const el = document.getElementById('calc-list');
+  if(filtered.length===0) { el.innerHTML=`<div class="no-result">검색 결과가 없습니다</div>`; return; }
+  el.innerHTML = `<div class="calc-grid">${filtered.map(c=>`
+    <div class="grid-card ${isFav(c.id)?'fav-grid':''}" onclick="openCalc('${c.id}')">
+      <div class="gc-top">
+        <span class="gc-icon">${c.icon}</span>
+        <button class="gc-star ${isFav(c.id)?'active':''}" onclick="toggleFavList('${c.id}',event)">${isFav(c.id)?'★':'☆'}</button>
+      </div>
+      <div class="gc-name">${c.name}</div>
+      <div class="gc-cat"><span class="cat-dot ${CAT_DOT[c.cat]}"></span>${CAT_LABEL[c.cat]}</div>
+    </div>`).join('')}</div>`;
+}
+function filterList() { renderList(); }
+function toggleFavList(id, e) {
+  e && e.stopPropagation();
+  if(isFav(id)) favorites = favorites.filter(f=>f!==id);
+  else favorites.push(id);
+  save(); renderHome(); renderList();
+}
+function setFilter(f,btn) {
+  currentFilter=f;
+  document.querySelectorAll('.filter-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  renderList();
+}
+
+// ══════════════════════════════════
+// CALCULATOR BUILDERS
+// ══════════════════════════════════
+function buildCalc(id) {
+  const body = document.getElementById('calc-body');
+  body.classList.remove('no-pad');
+  const builders = {
+    basic: buildBasic, sci: buildSci,
+    tip: buildTip, unit: buildUnit, ratio: buildRatio,
+    dutch: buildDutch, dday: buildDday, daysfrom: buildDaysfrom,
+    age: buildAge, discount: buildDiscount, savings: buildSavings,
+    loan: buildLoan, salary: buildSalary, annual: buildAnnual,
+    exchange: buildExchange, invest: buildInvest, acqutax: buildAcqutax,
+    carloan: buildCarloan,
+    bmi: buildBmi, calorie: buildCalorie, zone2: buildZone2,
+    pace: buildPace, orm: buildOrm, water: buildWater,
+  };
+  body.innerHTML = '';
+  builders[id] && builders[id](body);
+}
+
+function field(label, id, type='number', placeholder='', extra='') {
+  return `<div class="field"><label>${label}</label><input type="${type}" id="${id}" placeholder="${placeholder}" ${extra}></div>`;
+}
+// 콤마 포맷 숫자 입력 (text 타입으로 콤마 실시간 표시)
+function numField(label, id, placeholder='', suffix='') {
+  return `<div class="field"><label>${label}</label>
+    <div style="position:relative">
+      <input type="text" inputmode="numeric" id="${id}" placeholder="${placeholder}"
+        oninput="fmtInput(this)"
+        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px ${suffix?'36px':' 14px'} 13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      ${suffix?`<span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text3);pointer-events:none">${suffix}</span>`:''}
+    </div>
+  </div>`;
+}
+// 만원 단위 입력 필드
+function manField(label, id, placeholder='') {
+  return `<div class="field"><label>${label}</label>
+    <div style="position:relative">
+      <input type="text" inputmode="numeric" id="${id}" placeholder="${placeholder}"
+        oninput="fmtInput(this)"
+        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 40px 13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text3);pointer-events:none">만원</span>
+    </div>
+  </div>`;
+}
+// 콤마 입력 포맷터 — 소수점 허용
+function fmtInput(el) {
+  const raw = el.value;
+  // 숫자와 소수점만 허용, 소수점 중복 방지
+  let cleaned = raw.replace(/[^0-9.]/g, '');
+  const parts = cleaned.split('.');
+  if(parts.length > 2) cleaned = parts[0] + '.' + parts.slice(1).join('');
+  // 정수 부분만 콤마
+  const intPart = parts[0].replace(/[^0-9]/g,'');
+  const formatted = intPart ? Number(intPart).toLocaleString('ko-KR') : '';
+  el.value = parts.length >= 2 ? formatted + '.' + (parts[1]||'') : formatted;
+}
+// 콤마 제거 후 숫자 반환
+function getNum(id) { return parseFloat((document.getElementById(id)?.value||'').replace(/,/g,''))||0; }
+// 만원 단위 → 원 변환
+function getMan(id) { return getNum(id) * 10000; }
+
+// 만원 단위 숫자를 한글로 변환 (입력값은 만원 단위)
+// 예: 1 → 1만원, 10 → 10만원, 100 → 100만원, 1000 → 1000만원, 10000 → 1억원
+function toKorean(manwon) {
+  const n = Math.floor(manwon);
+  if(!n) return '';
+  // 1000억 = 1,000,000만원 이상은 표시 안 함
+  if(n >= 1000000) return '';
+  // 1억 = 10,000만원
+  const uk  = Math.floor(n / 10000); // 억
+  const man = n % 10000;             // 만
+
+  function seg(v) {
+    // v는 최대 9999
+    if(!v) return '';
+    let s = '';
+    const ch = Math.floor(v / 1000); v %= 1000;
+    const bek = Math.floor(v / 100);  v %= 100;
+    const sip = Math.floor(v / 10);   v %= 10;
+    const il  = v;
+    if(ch)  s += (ch  === 1 ? '' : ch)  + '천';
+    if(bek) s += (bek === 1 ? '' : bek) + '백';
+    if(sip) s += (sip === 1 ? '' : sip) + '십';
+    if(il)  s += il;
+    return s;
+  }
+
+  let result = '';
+  if(uk)  result += seg(uk)  + '억';
+  if(man) result += seg(man) + '만';
+  return result + '원';
+}
+
+// 만원 필드 — 입력 아래에 한글 금액 표시
+function manField(label, id, placeholder='') {
+  return `<div class="field">
+    <label>${label}</label>
+    <div style="position:relative">
+      <input type="text" inputmode="numeric" id="${id}" placeholder="${placeholder}"
+        oninput="fmtInput(this);updateKo('${id}')"
+        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 40px 13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text3);pointer-events:none">만원</span>
+    </div>
+    <div id="${id}-ko" style="font-size:12px;color:var(--accent2);margin-top:5px;min-height:16px;text-align:right;font-weight:600"></div>
+  </div>`;
+}
+function updateKo(id) {
+  const v = getNum(id);
+  const el = document.getElementById(id+'-ko');
+  if(el) el.textContent = v ? toKorean(v) : '';
+}
+function selectField(label, id, options) {
+  return `<div class="field"><label>${label}</label><select id="${id}">${options.map(o=>`<option value="${o.v}">${o.l}</option>`).join('')}</select></div>`;
+}
+// 날짜 필드 — 캘린더 아이콘 버튼 포함
+function dateField(label, id) {
+  return `<div class="field"><label>${label}</label>
+    <div style="position:relative">
+      <input type="date" id="${id}"
+        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 46px 13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;appearance:none;-webkit-appearance:none;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      <button onclick="document.getElementById('${id}').showPicker?document.getElementById('${id}').showPicker():document.getElementById('${id}').click()"
+        style="position:absolute;right:0;top:0;bottom:0;width:44px;display:flex;align-items:center;justify-content:center;background:var(--surface3);border:none;border-left:1px solid var(--border);border-radius:0 10px 10px 0;cursor:pointer;font-size:17px;color:var(--text2);transition:background .15s"
+        onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='var(--surface3)'">📅</button>
+    </div>
+  </div>`;
+}
+// 필드 에러 표시 / 클리어
+function fieldError(id, msg) {
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.style.borderColor = 'var(--accent3)';
+  let hint = document.getElementById(id+'-err');
+  if(!hint) {
+    hint = document.createElement('div');
+    hint.id = id+'-err';
+    hint.style.cssText = 'font-size:11px;color:var(--accent3);margin-top:4px;';
+    el.closest('.field')?.appendChild(hint) || el.parentNode.appendChild(hint);
+  }
+  if(msg) hint.textContent = msg;
+}
+function fieldClear(id) {
+  const el = document.getElementById(id);
+  if(el) el.style.borderColor = 'var(--border)';
+  const hint = document.getElementById(id+'-err');
+  if(hint) hint.remove();
+}
+function btn(label='계산하기') { return `<button class="calc-btn" onclick="doCalc()">${label}</button>`; }
+function resultBox() { return `<div class="result-box" id="result-box"></div>`; }
+function showResult(html) {
+  const box = document.getElementById('result-box');
+  box.innerHTML = html; box.classList.add('show');
+  box.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+// ── 바로 계산 (기본 계산기) ──
+function buildBasic(b) {
+  document.getElementById('calc-body').classList.add('no-pad');
+  b.innerHTML = `
+    <div class="calc-display" id="bc-display">
+      <div class="disp-expr" id="bc-expr"></div>
+      <div class="disp-val" id="bc-val">0</div>
+    </div>
+    <div class="btn-grid cols4">
+      <button class="ckey k-clr" onclick="bcKey('AC')">AC</button>
+      <button class="ckey k-fn"  onclick="bcKey('+/-')">+/-</button>
+      <button class="ckey k-fn"  onclick="bcKey('%')">%</button>
+      <button class="ckey k-op"  onclick="bcKey('÷')">÷</button>
+
+      <button class="ckey k-num" onclick="bcKey('7')">7</button>
+      <button class="ckey k-num" onclick="bcKey('8')">8</button>
+      <button class="ckey k-num" onclick="bcKey('9')">9</button>
+      <button class="ckey k-op"  onclick="bcKey('×')">×</button>
+
+      <button class="ckey k-num" onclick="bcKey('4')">4</button>
+      <button class="ckey k-num" onclick="bcKey('5')">5</button>
+      <button class="ckey k-num" onclick="bcKey('6')">6</button>
+      <button class="ckey k-op"  onclick="bcKey('−')">−</button>
+
+      <button class="ckey k-num" onclick="bcKey('1')">1</button>
+      <button class="ckey k-num" onclick="bcKey('2')">2</button>
+      <button class="ckey k-num" onclick="bcKey('3')">3</button>
+      <button class="ckey k-op"  onclick="bcKey('+')">+</button>
+
+      <button class="ckey k-num k-zero" style="grid-column:span 2" onclick="bcKey('0')">0</button>
+      <button class="ckey k-num" onclick="bcKey('.')">.</button>
+      <button class="ckey k-eq"  onclick="bcKey('=')">=</button>
+    </div>`;
+
+  let cur='0', prev='', op='', justEvaled=false;
+
+  function updateDisplay() {
+    const valEl=document.getElementById('bc-val');
+    const exprEl=document.getElementById('bc-expr');
+    valEl.textContent = formatNum(cur);
+    exprEl.textContent = prev && op ? prev+' '+op : '';
+    const len = valEl.textContent.length;
+    valEl.className = 'disp-val' + (len>12?' xsmall':len>9?' small':'');
+  }
+
+  function formatNum(s) {
+    if(s==='Error') return 'Error';
+    const n=parseFloat(s);
+    if(isNaN(n)) return s;
+    // show up to 10 significant digits, strip trailing zeros
+    let out = parseFloat(n.toPrecision(10)).toString();
+    return out;
+  }
+
+  window.bcKey = (k) => {
+    if(k==='AC') { cur='0'; prev=''; op=''; justEvaled=false; }
+    else if(k==='+/-') { cur=(parseFloat(cur)*-1).toString(); }
+    else if(k==='%') { cur=(parseFloat(cur)/100).toString(); }
+    else if(['÷','×','−','+'].includes(k)) {
+      if(op && !justEvaled) { bcKey('='); }
+      prev=cur; op=k; justEvaled=false; cur='0';
+    }
+    else if(k==='=') {
+      if(!op) return;
+      const a=parseFloat(prev), b=parseFloat(cur);
+      let res;
+      if(op==='÷') res = b===0?'Error':a/b;
+      else if(op==='×') res = a*b;
+      else if(op==='−') res = a-b;
+      else res = a+b;
+      cur = res==='Error'?'Error':parseFloat(res.toPrecision(10)).toString();
+      op=''; prev=''; justEvaled=true;
+    }
+    else if(k==='.') {
+      if(justEvaled){cur='0';justEvaled=false;}
+      if(!cur.includes('.')) cur+='.';
+    }
+    else { // digit
+      if(justEvaled){cur=k;justEvaled=false;}
+      else cur = cur==='0'?k:cur+k;
+      if(cur.length>15) cur=cur.slice(0,-1);
+    }
+    updateDisplay();
+  };
+  updateDisplay();
+}
+
+// ── 공학용 계산기 ──
+function buildSci(b) {
+  document.getElementById('calc-body').classList.add('no-pad');
+  b.innerHTML = `
+    <div class="calc-display" id="sc-display">
+      <div class="disp-expr" id="sc-expr"></div>
+      <div class="disp-val" id="sc-val">0</div>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center">
+      <button id="sc-shift-btn" class="ckey k-sci" style="flex:1;aspect-ratio:unset;padding:9px 0;border-radius:10px" onclick="scToggleShift()">2nd</button>
+      <button class="ckey k-sci" style="flex:1;aspect-ratio:unset;padding:9px 0;border-radius:10px" onclick="scToggleDeg()" id="sc-deg-btn">DEG</button>
+      <button class="ckey k-sci" style="flex:1;aspect-ratio:unset;padding:9px 0;border-radius:10px" onclick="scKey('(')">(</button>
+      <button class="ckey k-sci" style="flex:1;aspect-ratio:unset;padding:9px 0;border-radius:10px" onclick="scKey(')')">)</button>
+    </div>
+    <div class="btn-grid cols5" id="sc-fn-row">
+      <button class="ckey k-sci" id="sf0" onclick="scFn(0)">sin</button>
+      <button class="ckey k-sci" id="sf1" onclick="scFn(1)">cos</button>
+      <button class="ckey k-sci" id="sf2" onclick="scFn(2)">tan</button>
+      <button class="ckey k-sci" id="sf3" onclick="scFn(3)">log</button>
+      <button class="ckey k-sci" id="sf4" onclick="scFn(4)">ln</button>
+
+      <button class="ckey k-sci" id="sf5" onclick="scFn(5)">x²</button>
+      <button class="ckey k-sci" id="sf6" onclick="scFn(6)">x³</button>
+      <button class="ckey k-sci" id="sf7" onclick="scFn(7)">xʸ</button>
+      <button class="ckey k-sci" id="sf8" onclick="scFn(8)">√</button>
+      <button class="ckey k-sci" id="sf9" onclick="scFn(9)">1/x</button>
+    </div>
+    <div style="height:8px"></div>
+    <div class="btn-grid cols4">
+      <button class="ckey k-clr" onclick="scKey('AC')">AC</button>
+      <button class="ckey k-fn"  onclick="scKey('DEL')">⌫</button>
+      <button class="ckey k-sci" onclick="scKey('π')">π</button>
+      <button class="ckey k-op"  onclick="scKey('÷')">÷</button>
+
+      <button class="ckey k-num" onclick="scKey('7')">7</button>
+      <button class="ckey k-num" onclick="scKey('8')">8</button>
+      <button class="ckey k-num" onclick="scKey('9')">9</button>
+      <button class="ckey k-op"  onclick="scKey('×')">×</button>
+
+      <button class="ckey k-num" onclick="scKey('4')">4</button>
+      <button class="ckey k-num" onclick="scKey('5')">5</button>
+      <button class="ckey k-num" onclick="scKey('6')">6</button>
+      <button class="ckey k-op"  onclick="scKey('−')">−</button>
+
+      <button class="ckey k-num" onclick="scKey('1')">1</button>
+      <button class="ckey k-num" onclick="scKey('2')">2</button>
+      <button class="ckey k-num" onclick="scKey('3')">3</button>
+      <button class="ckey k-op"  onclick="scKey('+')">+</button>
+
+      <button class="ckey k-num k-zero" style="grid-column:span 2" onclick="scKey('0')">0</button>
+      <button class="ckey k-num" onclick="scKey('.')">.</button>
+      <button class="ckey k-eq"  onclick="scKey('=')">=</button>
+    </div>`;
+
+  let expr='', useDeg=true, shiftOn=false;
+
+  const fnNormal = ['sin','cos','tan','log','ln','x²','x³','xʸ','√','1/x'];
+  const fnShift  = ['sin⁻¹','cos⁻¹','tan⁻¹','10^x','eˣ','x^(1/2)','∛','y√x','x²','n!'];
+  const fnLabels = fnNormal;
+
+  function scToggleShift() {
+    shiftOn=!shiftOn;
+    const btn=document.getElementById('sc-shift-btn');
+    btn.classList.toggle('k-shift-on', shiftOn);
+    for(let i=0;i<10;i++) {
+      const el=document.getElementById('sf'+i);
+      if(el) el.textContent = shiftOn?fnShift[i]:fnNormal[i];
+    }
+  }
+  function scToggleDeg() {
+    useDeg=!useDeg;
+    document.getElementById('sc-deg-btn').textContent=useDeg?'DEG':'RAD';
+  }
+
+  function toRad(v){ return useDeg?v*Math.PI/180:v; }
+  function fromRad(v){ return useDeg?v*180/Math.PI:v; }
+
+  function scFn(i) {
+    const labels = shiftOn?fnShift:fnNormal;
+    const fn = labels[i];
+    const cur = expr||'0';
+    let val;
+    try { val = evalExpr(cur); } catch(e){ val=NaN; }
+    if(isNaN(val)){ expr=fn+'('; }
+    else {
+      let res;
+      switch(fn){
+        case 'sin':   res=Math.sin(toRad(val)); break;
+        case 'cos':   res=Math.cos(toRad(val)); break;
+        case 'tan':   res=Math.tan(toRad(val)); break;
+        case 'log':   res=Math.log10(val); break;
+        case 'ln':    res=Math.log(val); break;
+        case 'x²':    res=Math.pow(val,2); break;
+        case 'x³':    res=Math.pow(val,3); break;
+        case 'xʸ':    expr=cur+'^'; scUpdateDisplay(); return;
+        case '√':     res=Math.sqrt(val); break;
+        case '1/x':   res=1/val; break;
+        case 'sin⁻¹': res=fromRad(Math.asin(val)); break;
+        case 'cos⁻¹': res=fromRad(Math.acos(val)); break;
+        case 'tan⁻¹': res=fromRad(Math.atan(val)); break;
+        case '10^x':  res=Math.pow(10,val); break;
+        case 'eˣ':    res=Math.exp(val); break;
+        case 'x^(1/2)': res=Math.sqrt(val); break;
+        case '∛':     res=Math.cbrt(val); break;
+        case 'y√x':   expr=cur+'^(1/'; scUpdateDisplay(); return;
+        case 'n!':    res=factorial(val); break;
+        default: res=NaN;
+      }
+      expr = isFinite(res)?fmtSci(res).toString():'Error';
+    }
+    if(shiftOn) scToggleShift();
+    scUpdateDisplay();
+  }
+
+  function factorial(n){ n=Math.round(n); if(n<0||n>170) return NaN; let r=1; for(let i=2;i<=n;i++) r*=i; return r; }
+
+  function evalExpr(s) {
+    // replace symbols then use Function
+    let e = s
+      .replace(/÷/g,'/')
+      .replace(/×/g,'*')
+      .replace(/−/g,'-')
+      .replace(/\^/g,'**')
+      .replace(/π/g, Math.PI.toString())
+      .replace(/e(?!\d)/g, Math.E.toString());
+    // eslint-disable-next-line no-new-func
+    return Function('"use strict";return ('+e+')')();
+  }
+
+  function fmtSci(n) {
+    if(!isFinite(n)) return 'Error';
+    let s = parseFloat(n.toPrecision(10)).toString();
+    return s;
+  }
+
+  function scUpdateDisplay() {
+    const valEl=document.getElementById('sc-val');
+    const exprEl=document.getElementById('sc-expr');
+    // try to evaluate partial expression for live preview
+    let preview = '';
+    try {
+      let test = expr.replace(/[+\-×÷\^(]$/, '');
+      if(test && test!=='') {
+        let r = evalExpr(test);
+        if(isFinite(r) && test!==expr) preview = '= '+fmtSci(r);
+      }
+    } catch(e){}
+    exprEl.textContent = preview;
+    valEl.textContent = expr||'0';
+    const len=(expr||'0').length;
+    valEl.className='disp-val'+(len>16?' xsmall':len>11?' small':'');
+  }
+
+  window.scKey = (k) => {
+    if(k==='AC') { expr=''; }
+    else if(k==='DEL') { expr=expr.slice(0,-1); }
+    else if(k==='=') {
+      try {
+        let res=evalExpr(expr||'0');
+        expr=isFinite(res)?fmtSci(res):'Error';
+      } catch(e){ expr='Error'; }
+    }
+    else if(k==='π') { expr+='π'; }
+    else { expr+=k; }
+    scUpdateDisplay();
+  };
+  scUpdateDisplay();
+}
+
+// ── 더치페이 ──
+function buildDutch(b) {
+  let people = [{name:'',id:0},{name:'',id:1},{name:'',id:2}];
+  let nextId = 3;
+  // seats: [{place, amount, participants: Set of ids}]
+  let seats = [{ place:'', amount:'', participants: new Set([0,1,2]) }];
+  let activeSeat = 0;
+  let showResult = false;
+
+  function render() {
+    if(showResult) { renderResult(); return; }
+    b.innerHTML = `
+      <div id="dutch-inner">
+        <!-- 자리 탭 -->
+        <div style="margin-bottom:14px">
+          <div style="font-size:12px;font-weight:600;color:var(--text3);letter-spacing:.05em;margin-bottom:8px">자리</div>
+          <div class="dutch-rounds" id="dutch-seat-tabs"></div>
+        </div>
+
+        <!-- 가게 이름 + 금액 -->
+        <div class="field-row" style="margin-bottom:12px">
+          <div class="field" style="margin-bottom:0">
+            <label>가게 이름 (선택)</label>
+            <input type="text" id="dutch-place" placeholder="삼겹살집, 호프집..." oninput="dutchSaveField()">
+          </div>
+          <div class="field" style="margin-bottom:0">
+            <label>금액 (원)</label>
+            <input type="text" inputmode="numeric" id="dutch-amount" placeholder="50,000"
+              oninput="fmtInput(this);dutchSaveField()"
+              style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+          </div>
+        </div>
+
+        <!-- 참여 인원 -->
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+          <span style="font-size:12px;font-weight:600;color:var(--text3);letter-spacing:.05em">참여 인원</span>
+          <span style="font-size:11px;color:var(--text3)" id="dutch-count-label"></span>
+        </div>
+        <div class="people-grid" id="dutch-people"></div>
+        <button class="dutch-add-person" onclick="dutchAddPerson()">
+          <span style="font-size:16px">+</span> 인원 추가
+        </button>
+
+        <button class="calc-btn" onclick="dutchCalc()">계산하기</button>
+      </div>`;
+
+    renderSeatTabs();
+    renderPeople();
+    loadSeat();
+  }
+
+  function renderSeatTabs() {
+    const el = document.getElementById('dutch-seat-tabs');
+    el.innerHTML = seats.map((s,i)=>`
+      <button class="round-tab ${i===activeSeat?'active':''}" onclick="dutchSetSeat(${i})">
+        ${s.place || (i===0?'1차':i===1?'2차':i===2?'3차':`${i+1}차`)}
+      </button>
+    `).join('') + `<button class="round-add-btn" onclick="dutchAddSeat()">+ 추가</button>`;
+  }
+
+  function renderPeople() {
+    const el = document.getElementById('dutch-people');
+    const curSet = seats[activeSeat].participants;
+    const total = people.length;
+    const joined = [...curSet].length;
+    const countEl = document.getElementById('dutch-count-label');
+    if(countEl) countEl.textContent = `(전체 ${total}명 중 ${joined}명 참여)`;
+
+    el.innerHTML = people.map(p=>{
+      const isIn = curSet.has(p.id);
+      return `
+        <div class="person-chip" style="${isIn?'':'opacity:.45;'}">
+          <input type="text" placeholder="이름 (선택)" value="${p.name}"
+            oninput="dutchSetName(${p.id},this.value)">
+          <button onclick="dutchToggleJoin(${p.id})"
+            style="padding:0 10px;align-self:stretch;display:flex;align-items:center;
+              border:none;border-left:1px solid var(--border);cursor:pointer;
+              font-size:13px;font-weight:700;white-space:nowrap;transition:all .15s;
+              background:${isIn?'rgba(79,255,176,.12)':'var(--surface3)'};
+              color:${isIn?'var(--accent2)':'var(--text3)'};">
+            ${isIn?'✓ 참여':'✗ 불참'}
+          </button>
+          ${people.length>2?`<button class="chip-del" onclick="dutchDelPerson(${p.id})">✕</button>`:''}
+        </div>`;
+    }).join('');
+  }
+
+  function loadSeat() {
+    const s = seats[activeSeat];
+    const placeEl = document.getElementById('dutch-place');
+    const amtEl = document.getElementById('dutch-amount');
+    if(placeEl) placeEl.value = s.place||'';
+    if(amtEl) amtEl.value = s.amount ? Number(s.amount).toLocaleString('ko-KR') : '';
+  }
+
+  window.dutchSaveField = () => {
+    seats[activeSeat].place = document.getElementById('dutch-place')?.value||'';
+    // 콤마 제거 후 순수 숫자로 저장
+    seats[activeSeat].amount = (document.getElementById('dutch-amount')?.value||'').replace(/,/g,'');
+    renderSeatTabs();
+  };
+  window.dutchSetSeat = (i) => {
+    dutchSaveField();
+    activeSeat = i;
+    renderSeatTabs();
+    renderPeople();
+    loadSeat();
+  };
+  window.dutchAddSeat = () => {
+    dutchSaveField();
+    seats.push({ place:'', amount:'', participants: new Set(seats[activeSeat].participants) });
+    activeSeat = seats.length-1;
+    renderSeatTabs();
+    renderPeople();
+    loadSeat();
+  };
+  window.dutchAddPerson = () => {
+    const id = nextId++;
+    people.push({name:'',id});
+    seats[activeSeat].participants.add(id);
+    renderPeople();
+    const countEl = document.getElementById('dutch-count-label');
+    if(countEl) countEl.textContent=`(전체 ${people.length}명 중 ${[...seats[activeSeat].participants].length}명 참여)`;
+  };
+  window.dutchDelPerson = (id) => {
+    people = people.filter(p=>p.id!==id);
+    seats.forEach(s=>s.participants.delete(id));
+    renderPeople();
+  };
+  window.dutchSetName = (id, val) => {
+    const p=people.find(x=>x.id===id); if(p) p.name=val;
+  };
+  window.dutchToggleJoin = (id) => {
+    const set=seats[activeSeat].participants;
+    if(set.has(id)){ if(set.size>1) set.delete(id); }
+    else set.add(id);
+    renderPeople();
+  };
+
+  window.dutchCalc = () => {
+    dutchSaveField();
+    const totals={};
+    people.forEach(p=>totals[p.id]=0);
+    let hasAmount=false;
+    seats.forEach(s=>{
+      const amt=parseFloat(s.amount)||0;
+      if(!amt) return;
+      hasAmount=true;
+      const ids=[...s.participants];
+      if(!ids.length) return;
+      ids.forEach(id=>{ totals[id]=(totals[id]||0)+amt/ids.length; });
+    });
+    if(!hasAmount) return;
+    showResult=true;
+    render();
+  };
+
+  function renderResult() {
+    const totals={};
+    people.forEach(p=>totals[p.id]=0);
+    const grandTotal=seats.reduce((s,r)=>s+(parseFloat(r.amount)||0),0);
+    seats.forEach(s=>{
+      const amt=parseFloat(s.amount)||0;
+      if(!amt) return;
+      const ids=[...s.participants];
+      if(!ids.length) return;
+      ids.forEach(id=>{ totals[id]=(totals[id]||0)+amt/ids.length; });
+    });
+
+    const involved=people.filter(p=>totals[p.id]>0);
+
+    // 자리별 요약 한 줄씩
+    const seatSummary = seats.filter(s=>parseFloat(s.amount)).map((s,i)=>{
+      const nm = s.place||(i===0?'1차':i===1?'2차':i===2?'3차':`${i+1}차`);
+      const cnt=[...s.participants].length;
+      return `<div class="result-row">
+        <span class="rk">${nm}</span>
+        <span class="rv">${fmt(parseFloat(s.amount))}원 · ${cnt}명</span>
+      </div>`;
+    }).join('');
+
+    // 인원별 합산
+    const personRows = involved.map((p,i)=>`
+      <div class="result-row">
+        <span class="rk" style="font-size:14px">${p.name||`참가자 ${i+1}`}</span>
+        <span class="rv accent" style="font-size:16px">${fmt(Math.ceil(totals[p.id]))}원</span>
+      </div>`).join('');
+
+    b.innerHTML = `
+      <div style="text-align:center;padding:8px 0 20px">
+        <div style="font-size:13px;color:var(--text3);margin-bottom:6px">총 지출</div>
+        <div style="font-size:38px;font-weight:700;font-family:'Space Mono',monospace;color:var(--accent2)">${fmt(Math.round(grandTotal))}<span style="font-size:18px;color:var(--text2)">원</span></div>
+        <div style="font-size:13px;color:var(--text3);margin-top:4px">${seats.filter(s=>parseFloat(s.amount)).length}자리 · ${involved.length}명</div>
+      </div>
+
+      <div style="background:var(--surface2);border:1.5px solid rgba(79,255,176,.2);border-radius:var(--radius);padding:4px 16px;margin-bottom:14px">
+        <div style="font-size:11px;font-weight:700;color:var(--accent2);letter-spacing:.08em;padding:10px 0 6px">인원별 합산</div>
+        ${personRows}
+      </div>
+
+      <div style="background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);padding:4px 16px;margin-bottom:24px">
+        <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.08em;padding:10px 0 6px">자리별</div>
+        ${seatSummary}
+      </div>
+
+      <button class="calc-btn" style="background:var(--surface2);color:var(--text2);border:1.5px solid var(--border)" onclick="dutchBack()">← 다시 계산하기</button>
+    `;
+  }
+
+  window.dutchBack = () => {
+    showResult=false;
+    render();
+  };
+
+  render();
+}
+
+// ── D-day ──
+function buildDday(b) {
+  b.innerHTML = `
+    ${dateField('목표 날짜','dday-date')}
+    <div class="field"><label>이름/메모 <span style="font-size:11px;color:var(--text3)">(선택)</span></label><input type="text" id="dday-label" placeholder="여행, 시험, 기념일..."></div>
+    ${btn('계산하기')} ${resultBox()}`;
+  window.doCalc = () => {
+    fieldClear('dday-date');
+    const dt = document.getElementById('dday-date').value;
+    const lb = document.getElementById('dday-label').value||'목표';
+    if(!dt) { fieldError('dday-date','날짜를 선택해주세요'); return; }
+    const diff = Math.ceil((new Date(dt)-new Date().setHours(0,0,0,0))/(864e5));
+    const txt = diff===0?'D-Day!':diff>0?`D-${diff}`:`D+${-diff}`;
+    showResult(`<div class="result-main">${txt}</div><div class="result-sub">${lb} · ${dt}${diff>0?' · '+diff+'일 남음':diff<0?' · '+(-diff)+'일 지남':' · 오늘!'}</div>`);
+  };
+}
+
+// ── 오늘 기준 며칠 ──
+function buildDaysfrom(b) {
+  b.innerHTML = `
+    ${dateField('시작 날짜','df-start')}
+    ${dateField('종료 날짜','df-end')}
+    ${btn()} ${resultBox()}`;
+  window.doCalc = () => {
+    ['df-start','df-end'].forEach(fieldClear);
+    const sv=document.getElementById('df-start').value;
+    const ev=document.getElementById('df-end').value;
+    if(!sv) { fieldError('df-start','시작 날짜를 선택해주세요'); return; }
+    if(!ev) { fieldError('df-end','종료 날짜를 선택해주세요'); return; }
+    const s=new Date(sv), e=new Date(ev);
+    const diff=Math.abs(Math.round((e-s)/864e5));
+    const weeks=Math.floor(diff/7), days=diff%7;
+    showResult(`<div class="result-main">${fmt(diff)}<span style="font-size:16px;color:var(--text2)">일</span></div>
+    <div class="result-row"><span class="rk">주 단위</span><span class="rv">${weeks}주 ${days}일</span></div>
+    <div class="result-row"><span class="rk">개월 (근사)</span><span class="rv accent">${(diff/30.44).toFixed(1)}개월</span></div>`);
+  };
+}
+
+// ── 만 나이 ──
+function buildAge(b) {
+  b.innerHTML = `${dateField('생년월일','birth-date')} ${btn()} ${resultBox()}`;
+  window.doCalc = () => {
+    fieldClear('birth-date');
+    const bv = document.getElementById('birth-date').value;
+    if(!bv) { fieldError('birth-date','생년월일을 선택해주세요'); return; }
+    const bd = new Date(bv);
+    if(bd > new Date()) { fieldError('birth-date','미래 날짜는 입력할 수 없어요'); return; }
+    const today = new Date();
+    let age = today.getFullYear()-bd.getFullYear();
+    const m = today.getMonth()-bd.getMonth();
+    if(m<0||(m===0&&today.getDate()<bd.getDate())) age--;
+    const zodiac = ['쥐🐭','소🐮','호랑이🐯','토끼🐰','용🐲','뱀🐍','말🐴','양🐑','원숭이🐵','닭🐔','개🐶','돼지🐷'];
+    const sign = zodiac[(bd.getFullYear()-4)%12];
+    const next = new Date(today.getFullYear(), bd.getMonth(), bd.getDate());
+    if(next<today) next.setFullYear(next.getFullYear()+1);
+    const dBirth = Math.ceil((next-today)/864e5);
+    showResult(`<div class="result-main">${age}<span style="font-size:16px;color:var(--text2)">세</span></div>
+    <div class="result-row"><span class="rk">띠</span><span class="rv accent">${sign}</span></div>
+    <div class="result-row"><span class="rk">다음 생일까지</span><span class="rv">${dBirth===0?'오늘!':dBirth+'일'}</span></div>`);
+  };
+}
+
+// ── 할인율 ──
+function buildDiscount(b) {
+  b.innerHTML = `
+    <div class="field"><label>계산 방식</label>
+      <div class="radio-group">
+        <label><input type="radio" name="disc-mode" value="normal" checked onchange="discModeChange()"><span>할인가 계산</span></label>
+        <label><input type="radio" name="disc-mode" value="reverse" onchange="discModeChange()"><span>역산 (원가 계산)</span></label>
+      </div>
+    </div>
+    <div id="disc-fields">
+      ${numField('정가 (원)','disc-original','100,000')}
+      ${numField('할인율 (%)','disc-rate','20')}
+    </div>
+    ${btn()} ${resultBox()}`;
+  window.doCalc = () => {
+    const mode = document.querySelector('input[name=disc-mode]:checked').value;
+    if(mode==='normal') {
+      const orig=getNum('disc-original');
+      const rate=getNum('disc-rate');
+      if(!orig||rate<0||rate>100) return;
+      const discounted = orig*(1-rate/100);
+      const saved = orig-discounted;
+      showResult(`<div class="result-main">${fmtMoney(discounted)}</div>
+      <div class="result-row"><span class="rk">절약 금액</span><span class="rv accent">${fmtMoney(saved)}</span></div>
+      <div class="result-row"><span class="rk">정가</span><span class="rv">${fmtMoney(orig)}</span></div>`);
+    } else {
+      const discounted=getNum('disc-original');
+      const rate=getNum('disc-rate');
+      if(!discounted||rate<0||rate>=100) return;
+      const orig = discounted/(1-rate/100);
+      showResult(`<div class="result-main">${fmtMoney(orig)}</div>
+      <div class="result-row"><span class="rk">할인가</span><span class="rv">${fmtMoney(discounted)}</span></div>
+      <div class="result-row"><span class="rk">절약 금액</span><span class="rv accent">${fmtMoney(orig-discounted)}</span></div>`);
+    }
+  };
+  window.discModeChange = () => {
+    const mode = document.querySelector('input[name=disc-mode]:checked').value;
+    document.getElementById('disc-fields').innerHTML = mode==='normal'
+      ? `${numField('정가 (원)','disc-original','100,000')}${numField('할인율 (%)','disc-rate','20')}`
+      : `${numField('할인가 (원)','disc-original','80,000')}${numField('할인율 (%)','disc-rate','20')}`;
+  };
+}
+
+// ── 적금 이자 ──
+function buildSavings(b) {
+  b.innerHTML = `
+    ${manField('월 납입액','sav-monthly','30')}
+    ${numField('연 이자율 (%)','sav-rate','4.5')}
+    ${numField('기간 (개월)','sav-months','12')}
+    ${selectField('이자 방식','sav-type',[{v:'simple',l:'단리'},{v:'compound',l:'복리'}])}
+    ${btn()} ${resultBox()}`;
+  window.doCalc = () => {
+    const m=getMan('sav-monthly');
+    const r=getNum('sav-rate')/100/12;
+    const n=getNum('sav-months');
+    const type=document.getElementById('sav-type').value;
+    if(!m||!r||!n) return;
+    const principal=m*n;
+    let maturity;
+    if(type==='compound') maturity=m*(Math.pow(1+r,n)-1)/r*(1+r);
+    else maturity=principal+principal*(getNum('sav-rate')/100)*(n/12)/2;
+    const interest=maturity-principal;
+    const tax=interest*0.154;
+    showResult(`<div class="result-main">${fmtMoney(Math.round(maturity))}</div>
+    <div class="result-row"><span class="rk">원금</span><span class="rv">${fmtMoney(principal)}</span></div>
+    <div class="result-row"><span class="rk">세전 이자</span><span class="rv accent">${fmtMoney(Math.round(interest))}</span></div>
+    <div class="result-row"><span class="rk">이자 과세(15.4%)</span><span class="rv">${fmtMoney(Math.round(tax))}</span></div>
+    <div class="result-row"><span class="rk">세후 만기 수령액</span><span class="rv accent">${fmtMoney(Math.round(maturity-tax))}</span></div>`);
+  };
+}
+
+// ── 대출 이자 ──
+function buildLoan(b) {
+  b.innerHTML = `
+    ${manField('대출 원금','ln-principal','10,000')}
+    ${numField('연 이자율 (%)','ln-rate','4.5')}
+    ${numField('대출 기간 (개월)','ln-months','360')}
+    ${selectField('상환 방식','ln-type',[{v:'equal',l:'원리금균등'},{v:'principal',l:'원금균등'}])}
+    ${btn()} ${resultBox()}`;
+  window.doCalc = () => {
+    const P=getMan('ln-principal');
+    const annualR=getNum('ln-rate');
+    const n=getNum('ln-months');
+    const type=document.getElementById('ln-type').value;
+    if(!P||!annualR||!n) return;
+    const r=annualR/100/12;
+    let monthly, totalInterest;
+    if(type==='equal') {
+      monthly=P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
+      totalInterest=monthly*n-P;
+    } else {
+      const principalPay=P/n;
+      const firstInterest=P*r;
+      monthly=principalPay+firstInterest;
+      totalInterest=P*r*(n+1)/2;
+    }
+    showResult(`<div class="result-main">${fmtMoney(Math.round(monthly))}<span style="font-size:14px;color:var(--text2)">/월</span></div>
+    <div class="result-row"><span class="rk">총 상환액</span><span class="rv">${fmtMoney(Math.round(P+totalInterest))}</span></div>
+    <div class="result-row"><span class="rk">총 이자</span><span class="rv accent">${fmtMoney(Math.round(totalInterest))}</span></div>
+    <div class="result-row"><span class="rk">원금</span><span class="rv">${fmtMoney(P)}</span></div>`);
+  };
+}
+
+// ── 연봉 실수령액 ──
+function buildSalary(b) {
+  function calcDeductions(grossMonthly, dep) {
+    const np=grossMonthly*0.045, hp=grossMonthly*0.03545, emp=grossMonthly*0.009, ltp=grossMonthly*0.0065;
+    const socialTotal=np+hp+emp+ltp;
+    const taxBase=grossMonthly-socialTotal;
+    let incomeTax=0;
+    if(taxBase<=1060000) incomeTax=0;
+    else if(taxBase<=1500000) incomeTax=(taxBase-1060000)*0.06;
+    else if(taxBase<=4500000) incomeTax=26400+(taxBase-1500000)*0.15;
+    else incomeTax=476400+(taxBase-4500000)*0.24;
+    incomeTax=Math.max(0,incomeTax-(dep-1)*12500);
+    const localTax=incomeTax*0.1;
+    const totalDeduct=socialTotal+incomeTax+localTax;
+    return {np,hp,emp,ltp,incomeTax,localTax,totalDeduct};
+  }
+
+  function renderSalary() {
+    const mode = document.querySelector('input[name=sal-mode]:checked')?.value || 'annual';
+    const inputLabel = mode==='annual'
+      ? `<label>연봉 (세전) <span style="color:var(--accent3);font-size:11px;font-weight:600">세전</span></label>`
+      : `<label>월급 (세후) <span style="color:var(--accent2);font-size:11px;font-weight:600">세후</span></label>`;
+    const placeholder = mode==='annual' ? '4,000' : '300';
+
+    b.innerHTML = `
+      <div class="field">
+        <label>계산 방식</label>
+        <div class="radio-group">
+          <label><input type="radio" name="sal-mode" value="annual" ${mode==='annual'?'checked':''} onchange="salModeChange()"><span>연봉 → 세후 월급</span></label>
+          <label><input type="radio" name="sal-mode" value="monthly" ${mode==='monthly'?'checked':''} onchange="salModeChange()"><span>월급 → 세전 연봉</span></label>
+        </div>
+      </div>
+      <div class="field">
+        ${inputLabel}
+        <div style="position:relative">
+          <input type="text" inputmode="numeric" id="sal-amount" placeholder="${placeholder}"
+            oninput="fmtInput(this);updateKo('sal-amount')"
+            style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 40px 13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;"
+            onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+          <span style="position:absolute;right:14px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--text3);pointer-events:none">만원</span>
+        </div>
+        <div id="sal-amount-ko" style="font-size:12px;color:var(--accent2);margin-top:5px;min-height:16px;text-align:right;font-weight:600"></div>
+      </div>
+      ${selectField('부양가족 수','sal-dep',[{v:1,l:'1명(본인)'},{v:2,l:'2명'},{v:3,l:'3명'},{v:4,l:'4명'},{v:5,l:'5명 이상'}])}
+      ${btn()} ${resultBox()}`;
+  }
+
+  window.salModeChange = () => renderSalary();
+
+  window.doCalc = () => {
+    const mode = document.querySelector('input[name=sal-mode]:checked').value;
+    const dep = +document.getElementById('sal-dep').value;
+
+    if(mode==='annual') {
+      // 연봉 입력 → 세후 월급 계산
+      const annual = getMan('sal-amount');
+      if(!annual) return;
+      const gross = annual / 12;
+      const {np,hp,emp,ltp,incomeTax,localTax,totalDeduct} = calcDeductions(gross, dep);
+      const net = gross - totalDeduct;
+      showResult(`
+        <div style="font-size:12px;color:var(--text3);margin-bottom:4px">세후 월급</div>
+        <div class="result-main">${fmtMoney(Math.round(net))}</div>
+        <div class="result-row"><span class="rk">세전 연봉</span><span class="rv">${fmtMoney(annual)}</span></div>
+        <div class="result-row"><span class="rk">세전 월급</span><span class="rv">${fmtMoney(Math.round(gross))}</span></div>
+        <div class="result-row"><span class="rk">총 공제액</span><span class="rv accent">${fmtMoney(Math.round(totalDeduct))}</span></div>
+        <div class="result-row"><span class="rk">국민연금(4.5%)</span><span class="rv">${fmtMoney(Math.round(np))}</span></div>
+        <div class="result-row"><span class="rk">건강보험(3.545%)</span><span class="rv">${fmtMoney(Math.round(hp))}</span></div>
+        <div class="result-row"><span class="rk">고용보험(0.9%)</span><span class="rv">${fmtMoney(Math.round(emp))}</span></div>
+        <div class="result-row"><span class="rk">소득세+지방세</span><span class="rv">${fmtMoney(Math.round(incomeTax+localTax))}</span></div>`);
+    } else {
+      // 세후 월급 입력 → 세전 연봉 역산 (이분탐색)
+      const netTarget = getMan('sal-amount');
+      if(!netTarget) return;
+      let lo=netTarget, hi=netTarget*3, grossMonthly=netTarget;
+      for(let i=0;i<60;i++) {
+        const mid=(lo+hi)/2;
+        const {totalDeduct} = calcDeductions(mid, dep);
+        const netCalc = mid - totalDeduct;
+        if(netCalc < netTarget) lo=mid; else hi=mid;
+      }
+      grossMonthly = (lo+hi)/2;
+      const {np,hp,emp,ltp,incomeTax,localTax,totalDeduct} = calcDeductions(grossMonthly, dep);
+      const annual = grossMonthly * 12;
+      showResult(`
+        <div style="font-size:12px;color:var(--text3);margin-bottom:4px">세전 연봉</div>
+        <div class="result-main">${fmtMoney(Math.round(annual))}</div>
+        <div class="result-row"><span class="rk">세전 월급</span><span class="rv">${fmtMoney(Math.round(grossMonthly))}</span></div>
+        <div class="result-row"><span class="rk">세후 월급</span><span class="rv accent">${fmtMoney(Math.round(netTarget))}</span></div>
+        <div class="result-row"><span class="rk">총 공제액</span><span class="rv accent">${fmtMoney(Math.round(totalDeduct))}</span></div>
+        <div class="result-row"><span class="rk">국민연금(4.5%)</span><span class="rv">${fmtMoney(Math.round(np))}</span></div>
+        <div class="result-row"><span class="rk">건강보험(3.545%)</span><span class="rv">${fmtMoney(Math.round(hp))}</span></div>
+        <div class="result-row"><span class="rk">고용보험(0.9%)</span><span class="rv">${fmtMoney(Math.round(emp))}</span></div>
+        <div class="result-row"><span class="rk">소득세+지방세</span><span class="rv">${fmtMoney(Math.round(incomeTax+localTax))}</span></div>`);
+    }
+  };
+
+  renderSalary();
+}
+
+// ── 연봉 환산 ──
+function buildAnnual(b) {
+  b.innerHTML = `
+    ${manField('연봉','ann-annual','4,000')}
+    ${numField('주 근무시간 (시간)','ann-hours','40')}
+    ${btn()} ${resultBox()}`;
+  window.doCalc = () => {
+    const annual=getMan('ann-annual');
+    const weeklyHours=getNum('ann-hours')||40;
+    if(!annual) return;
+    const monthly=annual/12;
+    const weekly=annual/52;
+    const daily=annual/260;
+    const hourly=annual/(52*weeklyHours);
+    showResult(`<div class="result-main">${fmtMoney(Math.round(monthly))}<span style="font-size:14px;color:var(--text2)">/월</span></div>
+    <div class="result-row"><span class="rk">주급</span><span class="rv">${fmtMoney(Math.round(weekly))}</span></div>
+    <div class="result-row"><span class="rk">일급</span><span class="rv">${fmtMoney(Math.round(daily))}</span></div>
+    <div class="result-row"><span class="rk">시급</span><span class="rv accent">${fmtMoney(Math.round(hourly))}</span></div>
+    <div class="result-row"><span class="rk">분급</span><span class="rv">${fmtMoney(Math.round(hourly/60))}</span></div>`);
+  };
+}
+
+// ── 환율 ──
+function buildExchange(b) {
+  const CURRENCIES = [
+    { code:'KRW', flag:'🇰🇷', name:'원',         rate:1     },
+    { code:'USD', flag:'🇺🇸', name:'달러',        rate:1320  },
+    { code:'JPY', flag:'🇯🇵', name:'엔',          rate:8.8   },
+    { code:'EUR', flag:'🇪🇺', name:'유로',        rate:1420  },
+    { code:'CNY', flag:'🇨🇳', name:'위안',        rate:182   },
+    { code:'GBP', flag:'🇬🇧', name:'파운드',      rate:1680  },
+    { code:'HKD', flag:'🇭🇰', name:'홍콩달러',    rate:169   },
+    { code:'SGD', flag:'🇸🇬', name:'싱가포르달러', rate:980   },
+    { code:'AUD', flag:'🇦🇺', name:'호주달러',    rate:855   },
+    { code:'THB', flag:'🇹🇭', name:'바트',        rate:37    },
+    { code:'VND', flag:'🇻🇳', name:'동',          rate:0.052 },
+  ];
+  const byCode = {};
+  CURRENCIES.forEach(c => byCode[c.code] = c);
+
+  let fromCode = 'KRW';
+  let toCode   = 'USD';
+  let lastResult = null;
+  let excHistory = JSON.parse(localStorage.getItem('excHistory') || '[]');
+
+  const selStyle = `background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:10px 32px 10px 10px;color:var(--text);font-size:14px;font-family:inherit;outline:none;appearance:none;cursor:pointer;width:100%;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2210%27 height=%226%27 fill=%27none%27%3E%3Cpath d=%27M1 1l4 4 4-4%27 stroke=%27%239499aa%27 stroke-width=%271.5%27 stroke-linecap=%27round%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 10px center;`;
+
+  function getRate(from, to) {
+    return byCode[from].rate / byCode[to].rate;
+  }
+
+  function fmtVal(v, code) {
+    if(['KRW','JPY','VND'].includes(code)) return v.toLocaleString('ko-KR', {maximumFractionDigits:0});
+    return v.toLocaleString('ko-KR', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+
+  function currencyOptions(selected) {
+    return CURRENCIES.map(c =>
+      `<option value="${c.code}" ${c.code===selected?'selected':''}>${c.flag} ${c.name}</option>`
+    ).join('');
+  }
+
+  function renderExc() {
+    const from = byCode[fromCode];
+    const to   = byCode[toCode];
+    const rate = getRate(fromCode, toCode);
+    const rateDisplay = rate >= 1 ? rate.toFixed(2) : rate.toFixed(4);
+
+    const histHTML = excHistory.length ? `
+      <div style="margin-top:16px">
+        <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.08em;margin-bottom:6px">최근 계산</div>
+        ${excHistory.slice(0,5).map(h=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">
+            <span style="font-size:13px;color:var(--text3)">${h.fromFlag}→${h.toFlag}</span>
+            <span style="font-size:13px;font-weight:600;color:var(--text);font-family:'Space Mono',monospace">${h.label}</span>
+          </div>`).join('')}
+      </div>` : '';
+
+    const resultHTML = lastResult ? `
+      <div class="result-box show" id="result-box" style="text-align:center;padding:12px 0 6px">
+        <div style="font-size:13px;color:var(--text3);margin-bottom:4px">${lastResult.fromStr}</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:6px">▼</div>
+        <div style="font-size:26px;font-weight:700;font-family:'Space Mono',monospace;color:var(--accent2)">${lastResult.toStr}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:8px">${lastResult.rateStr}</div>
+      </div>` : `<div class="result-box" id="result-box"></div>`;
+
+    b.innerHTML = `
+      <!-- 금액 입력 -->
+      <div class="field" style="margin-bottom:10px">
+        <label>금액</label>
+        <input type="text" inputmode="numeric" id="exc-amount" placeholder="100,000"
+          oninput="fmtInput(this)"
+          style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-size:18px;font-weight:700;font-family:'Space Mono',monospace;outline:none;transition:border-color .2s"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      </div>
+
+      <!-- FROM / SWAP / TO 한 줄 -->
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:8px">
+        <select id="exc-from" onchange="excFromChange()" style="${selStyle}">
+          ${currencyOptions(fromCode)}
+        </select>
+        <button onclick="excSwap()"
+          style="background:var(--surface2);border:1.5px solid var(--border);border-radius:50%;width:34px;height:34px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;color:var(--text2);transition:all .15s"
+          onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">⇄</button>
+        <select id="exc-to" onchange="excToChange()" style="${selStyle}">
+          ${currencyOptions(toCode)}
+        </select>
+      </div>
+
+      <!-- 환율 한 줄 표시 -->
+      <div style="font-size:12px;color:var(--text3);text-align:center;margin-bottom:14px">
+        ${from.flag} 1 ${from.name} = ${to.flag} <span style="color:var(--accent2);font-weight:600">${rateDisplay}</span> ${to.name}
+        <span style="color:var(--text3);margin-left:4px;font-size:11px">(참고용)</span>
+      </div>
+
+      <button class="calc-btn" onclick="excCalc()">환산하기</button>
+      ${resultHTML}
+      ${histHTML}
+    `;
+  }
+
+  window.excFromChange = () => { fromCode = document.getElementById('exc-from').value; lastResult=null; renderExc(); };
+  window.excToChange   = () => { toCode   = document.getElementById('exc-to').value;   lastResult=null; renderExc(); };
+  window.excSwap       = () => { [fromCode,toCode]=[toCode,fromCode]; lastResult=null; renderExc(); };
+
+  window.excCalc = () => {
+    const amount = getNum('exc-amount');
+    if(!amount) return;
+    const from = byCode[fromCode];
+    const to   = byCode[toCode];
+    const rate = getRate(fromCode, toCode);
+    const result = amount * rate;
+    const rateDisplay = rate >= 1 ? rate.toFixed(2) : rate.toFixed(4);
+
+    lastResult = {
+      fromStr: `${from.flag} ${fmtVal(amount,fromCode)} ${from.name}`,
+      toStr:   `${to.flag} ${fmtVal(result,toCode)} ${to.name}`,
+      rateStr: `${from.flag} 1 ${from.name} = ${to.flag} ${rateDisplay} ${to.name}`,
+    };
+
+    excHistory.unshift({ fromFlag:from.flag, toFlag:to.flag, label:`${fmtVal(amount,fromCode)} → ${fmtVal(result,toCode)}` });
+    excHistory = excHistory.filter((v,i,a)=>i===a.findIndex(x=>x.fromFlag===v.fromFlag&&x.toFlag===v.toFlag&&x.label===v.label));
+    if(excHistory.length>5) excHistory=excHistory.slice(0,5);
+    localStorage.setItem('excHistory', JSON.stringify(excHistory));
+
+    renderExc();
+    document.getElementById('result-box')?.scrollIntoView({behavior:'smooth',block:'nearest'});
+  };
+
+  renderExc();
+}
+
+// ── 투자 수익률 ──
+function buildInvest(b) {
+  b.innerHTML = `
+    ${manField('투자 원금','inv-principal','1,000')}
+    ${manField('현재 가치','inv-current','1,350')}
+    ${numField('투자 기간 (년)','inv-years','3')}
+    ${btn()} ${resultBox()}`;
+  window.doCalc = () => {
+    const P=getMan('inv-principal');
+    const C=getMan('inv-current');
+    const Y=getNum('inv-years');
+    if(!P||!C) return;
+    const roi=(C-P)/P*100;
+    const cagr=Y>0?(Math.pow(C/P,1/Y)-1)*100:null;
+    showResult(`<div class="result-main">${roi>0?'+':''}${roi.toFixed(2)}<span style="font-size:18px">%</span></div>
+    <div class="result-row"><span class="rk">수익 금액</span><span class="rv accent">${fmtMoney(Math.round(C-P))}</span></div>
+    ${cagr!==null?`<div class="result-row"><span class="rk">연평균 수익률 (CAGR)</span><span class="rv">${cagr>0?'+':''}${cagr.toFixed(2)}%</span></div>`:''}
+    <div class="result-row"><span class="rk">원금 대비</span><span class="rv">${(C/P).toFixed(3)}배</span></div>`);
+  };
+}
+
+// ── 취득세 ──
+function buildAcqutax(b) {
+  b.innerHTML = `
+    ${manField('취득 금액','acq-price','50,000')}
+    ${selectField('주택 수 (취득 후)','acq-count',[{v:'1',l:'1주택 (무주택자)'},{v:'2',l:'2주택'},{v:'3',l:'3주택 이상'}])}
+    ${selectField('주택 유형','acq-type',[{v:'under6',l:'6억 이하'},{v:'6to9',l:'6억 초과 ~ 9억 이하'},{v:'over9',l:'9억 초과'}])}
+    ${btn()} ${resultBox()}`;
+  window.doCalc = () => {
+    const price=getMan('acq-price');
+    const count=document.getElementById('acq-count').value;
+    const type=document.getElementById('acq-type').value;
+    if(!price) return;
+    let rate;
+    if(count==='1') { rate=type==='under6'?0.01:type==='6to9'?0.01+(price/1e8-6)/30*0.02:0.03; }
+    else if(count==='2') { rate=0.08; }
+    else { rate=0.12; }
+    const acquTax=price*rate;
+    const eduTax=acquTax*0.2;
+    const agriTax=count==='1'&&type!=='over9'?0:acquTax*0.1;
+    const total=acquTax+eduTax+agriTax;
+    showResult(`<div class="result-main">${fmtMoney(Math.round(total))}</div>
+    <div class="result-sub" style="margin-bottom:4px">예상 세금 (취득세 + 지방교육세 + 농어촌특별세)</div>
+    <div class="result-row"><span class="rk">취득세 (${(rate*100).toFixed(1)}%)</span><span class="rv">${fmtMoney(Math.round(acquTax))}</span></div>
+    <div class="result-row"><span class="rk">지방교육세</span><span class="rv">${fmtMoney(Math.round(eduTax))}</span></div>
+    ${agriTax?`<div class="result-row"><span class="rk">농어촌특별세</span><span class="rv">${fmtMoney(Math.round(agriTax))}</span></div>`:''}
+    <p style="font-size:11px;color:var(--text3);margin-top:10px">* 실제 세금과 다를 수 있습니다. 정확한 세금은 세무사 상담을 권장합니다.</p>`);
+  };
+}
+
+// ── BMI ──
+function buildBmi(b) {
+  b.innerHTML = `
+    <div class="field-row">${numField('키 (cm)','bmi-h','170')}${numField('체중 (kg)','bmi-w','65')}</div>
+    ${btn()} ${resultBox()}`;
+  window.doCalc = () => {
+    const h=getNum('bmi-h')/100;
+    const w=getNum('bmi-w');
+    if(!h||!w) return;
+    const bmi=w/(h*h);
+    let cat,col;
+    if(bmi<18.5){cat='저체중';col='var(--accent)'}
+    else if(bmi<23){cat='정상';col='var(--accent2)'}
+    else if(bmi<25){cat='과체중';col='var(--life)'}
+    else if(bmi<30){cat='비만';col='var(--accent3)'}
+    else{cat='고도비만';col='var(--accent3)'}
+    const idealMin=(18.5*h*h), idealMax=(22.9*h*h);
+    showResult(`<div class="result-main" style="color:${col}">${bmi.toFixed(1)}</div>
+    <div class="result-row"><span class="rk">판정</span><span class="rv" style="color:${col}">${cat}</span></div>
+    <div class="result-row"><span class="rk">정상 체중 범위</span><span class="rv accent">${idealMin.toFixed(1)} ~ ${idealMax.toFixed(1)} kg</span></div>
+    <div class="result-row"><span class="rk">BMI 정상 범위</span><span class="rv">18.5 ~ 22.9</span></div>`);
+  };
+}
+
+// ── 하루 권장 칼로리 ──
+function buildCalorie(b) {
+  b.innerHTML = `
+    <div class="field-row">${numField('나이','cal-age','30')}
+    <div class="field"><label>성별</label><div class="radio-group"><label><input type="radio" name="cal-sex" value="m" checked><span>남</span></label><label><input type="radio" name="cal-sex" value="f"><span>여</span></label></div></div></div>
+    <div class="field-row">${numField('키 (cm)','cal-h','170')}${numField('체중 (kg)','cal-w','65')}</div>
+    ${selectField('활동량','cal-act',[
+      {v:'1.2',l:'거의 안 함 (좌식)'},
+      {v:'1.375',l:'가벼운 운동 (주 1-3회)'},
+      {v:'1.55',l:'보통 운동 (주 3-5회)'},
+      {v:'1.725',l:'활발한 운동 (주 6-7회)'},
+      {v:'1.9',l:'매우 활발 (육체노동/운동선수)'},
+    ])}
+    ${btn()} ${resultBox()}`;
+  window.doCalc = () => {
+    const age=getNum('cal-age');
+    const h=getNum('cal-h');
+    const w=getNum('cal-w');
+    const sex=document.querySelector('input[name=cal-sex]:checked').value;
+    const act=+document.getElementById('cal-act').value;
+    if(!age||!h||!w) return;
+    const bmr=sex==='m'?(10*w)+(6.25*h)-(5*age)+5:(10*w)+(6.25*h)-(5*age)-161;
+    const tdee=bmr*act;
+    showResult(`<div class="result-main">${Math.round(tdee)}<span style="font-size:16px;color:var(--text2)">kcal</span></div>
+    <div class="result-row"><span class="rk">기초대사량 (BMR)</span><span class="rv">${Math.round(bmr)} kcal</span></div>
+    <div class="result-row"><span class="rk">다이어트 (-500kcal)</span><span class="rv accent">${Math.round(tdee-500)} kcal</span></div>
+    <div class="result-row"><span class="rk">벌크업 (+300kcal)</span><span class="rv">${Math.round(tdee+300)} kcal</span></div>`);
+  };
+}
+
+// ── 러닝 심박수 ──
+function buildZone2(b) {
+  b.innerHTML = `
+    ${numField('나이','z2-age','30')}
+    <div class="field"><label>공식</label>
+      <div class="radio-group">
+        <label><input type="radio" name="z2-formula" value="220" checked><span>220-나이</span></label>
+        <label><input type="radio" name="z2-formula" value="karvonen"><span>카르보넨</span></label>
+      </div>
+    </div>
+    <div id="z2-rhr-field" style="display:none">${numField('안정 시 심박수 (bpm)','z2-rhr','60')}</div>
+    ${btn()} ${resultBox()}`;
+  document.querySelectorAll('input[name=z2-formula]').forEach(r=>r.addEventListener('change',()=>{
+    document.getElementById('z2-rhr-field').style.display=r.value==='karvonen'&&r.checked?'block':'none';
+  }));
+  window.doCalc = () => {
+    fieldClear('z2-age');
+    const age=getNum('z2-age');
+    if(!age||age<10||age>100) { fieldError('z2-age', age?'10~100 사이로 입력해주세요':'나이를 입력해주세요'); return; }
+    const formula=document.querySelector('input[name=z2-formula]:checked').value;
+    let maxHR, base, hrr;
+    if(formula==='220') {
+      maxHR=220-age; base=0; hrr=maxHR;
+    } else {
+      const rhr=getNum('z2-rhr')||60;
+      maxHR=220-age; hrr=maxHR-rhr; base=rhr;
+    }
+    const z=(pct)=>Math.round(base+hrr*pct);
+    showResult(`
+      <div class="result-main">${z(0.6)} <span style="font-size:18px">~</span> ${z(0.7)}<span style="font-size:16px;color:var(--text2)">bpm</span></div>
+      <div class="result-row"><span class="rk">최대 심박수</span><span class="rv">${maxHR} bpm</span></div>
+      <div class="result-row"><span class="rk">존 1 (50-60%)</span><span class="rv">${z(0.5)} ~ ${z(0.6)} bpm</span></div>
+      <div class="result-row"><span class="rk" style="color:var(--accent2)">존 2 (60-70%)</span><span class="rv accent">${z(0.6)} ~ ${z(0.7)} bpm</span></div>
+      <div class="result-row"><span class="rk">존 3 (70-80%)</span><span class="rv">${z(0.7)} ~ ${z(0.8)} bpm</span></div>
+      <div class="result-row"><span class="rk">존 4 (80-90%)</span><span class="rv">${z(0.8)} ~ ${z(0.9)} bpm</span></div>`);
+  };
+}
+
+// ── 러닝 페이스 ──
+function buildPace(b) {
+  const paceInStyle=`width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none`;
+  b.innerHTML = `
+    ${selectField('계산 방식','pace-mode',[
+      {v:'pace',l:'거리 + 시간 → 페이스'},
+      {v:'time',l:'거리 + 페이스 → 시간'},
+      {v:'dist',l:'시간 + 페이스 → 거리'},
+    ])}
+    <div id="pace-inputs"></div>
+    ${btn()} ${resultBox()}`;
+  function renderPaceInputs() {
+    const mode=document.getElementById('pace-mode').value;
+    const el=document.getElementById('pace-inputs');
+    if(mode==='pace') el.innerHTML=`${numField('거리 (km)','p-dist','5')}${numField('시간 (분)','p-time','30')}`;
+    else if(mode==='time') el.innerHTML=`${numField('거리 (km)','p-dist','10')}<div class="field"><label>페이스 (분 : 초 /km)</label><div class="field-row"><input type="text" inputmode="numeric" id="p-pmin" placeholder="5" style="${paceInStyle}"><input type="text" inputmode="numeric" id="p-psec" placeholder="30" style="${paceInStyle}"></div></div>`;
+    else el.innerHTML=`${numField('시간 (분)','p-time','60')}<div class="field"><label>페이스 (분 : 초 /km)</label><div class="field-row"><input type="text" inputmode="numeric" id="p-pmin" placeholder="5" style="${paceInStyle}"><input type="text" inputmode="numeric" id="p-psec" placeholder="30" style="${paceInStyle}"></div></div>`;
+  }
+  document.getElementById('pace-mode').addEventListener('change',renderPaceInputs);
+  renderPaceInputs();
+  const races=[{name:'5K',km:5},{name:'10K',km:10},{name:'하프',km:21.0975},{name:'풀마라톤',km:42.195}];
+  window.doCalc = () => {
+    const mode=document.getElementById('pace-mode').value;
+    let paceSecPerKm, dist, totalMin;
+    if(mode==='pace') {
+      dist=getNum('p-dist'); totalMin=getNum('p-time');
+      paceSecPerKm=totalMin*60/dist;
+    } else if(mode==='time') {
+      dist=getNum('p-dist');
+      const pm=+(document.getElementById('p-pmin')?.value||0);
+      const ps=+(document.getElementById('p-psec')?.value||0);
+      paceSecPerKm=pm*60+ps; totalMin=paceSecPerKm*dist/60;
+    } else {
+      totalMin=getNum('p-time');
+      const pm=+(document.getElementById('p-pmin')?.value||0);
+      const ps=+(document.getElementById('p-psec')?.value||0);
+      paceSecPerKm=pm*60+ps; dist=totalMin*60/paceSecPerKm;
+    }
+    if(!paceSecPerKm||!dist) return;
+    const pm=Math.floor(paceSecPerKm/60), ps=Math.round(paceSecPerKm%60);
+    const speedKmh=3600/paceSecPerKm;
+    const raceRows=races.map(r=>{const t=paceSecPerKm*r.km;const h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=Math.round(t%60);return `<div class="result-row"><span class="rk">${r.name}</span><span class="rv">${h>0?h+'시간 ':''}${m}분 ${s}초</span></div>`;}).join('');
+    showResult(`<div class="result-main">${pm}:${ps<10?'0'+ps:ps}<span style="font-size:16px;color:var(--text2)">/km</span></div>
+    <div class="result-row"><span class="rk">속도</span><span class="rv accent">${speedKmh.toFixed(2)} km/h</span></div>
+    <div class="result-row"><span class="rk">총 거리</span><span class="rv">${dist.toFixed(2)} km</span></div>
+    <div style="margin-top:8px;font-size:12px;color:var(--text3);font-weight:600;letter-spacing:.05em">이 페이스로 완주 시</div>${raceRows}`);
+  };
+}
+
+// ── 1RM ──
+function buildOrm(b) {
+  b.innerHTML = `
+    ${numField('무게 (kg)','orm-weight','80')}
+    ${numField('반복 횟수','orm-reps','5')}
+    ${btn()} ${resultBox()}`;
+  window.doCalc = () => {
+    const w=getNum('orm-weight');
+    const r=getNum('orm-reps');
+    if(!w||!r) return;
+    const epley=w*(1+r/30);
+    const brzycki=w*(36/(37-r));
+    const orm=(epley+brzycki)/2;
+    // nRM = 1RM × (1 - 0.025×n) Epley 역산 근사
+    const rmRows=[2,3,4,5,6,7,8,9,10].map(n=>{
+      const val=orm*(1-0.025*n);
+      return `<div class="result-row"><span class="rk">${n}RM</span><span class="rv">${val.toFixed(1)} kg</span></div>`;
+    }).join('');
+    showResult(`<div class="result-main">${orm.toFixed(1)}<span style="font-size:16px;color:var(--text2)">kg</span></div>
+    <div class="result-row"><span class="rk">Epley</span><span class="rv">${epley.toFixed(1)} kg</span></div>
+    <div class="result-row"><span class="rk">Brzycki</span><span class="rv">${brzycki.toFixed(1)} kg</span></div>
+    <div style="margin-top:8px;font-size:12px;color:var(--text3);font-weight:600;letter-spacing:.05em">RM 환산</div>${rmRows}`);
+  };
+}
+
+// ── 물 섭취량 ──
+function buildWater(b) {
+  b.innerHTML = `
+    ${numField('체중 (kg)','wat-weight','65')}
+    ${selectField('활동량','wat-act',[{v:'0',l:'보통 (비활동적)'},{v:'500',l:'가벼운 운동 (주 1-3회)'},{v:'700',l:'보통 운동 (주 3-5회)'},{v:'1000',l:'활발한 운동 (주 6-7회)'}])}
+    ${btn()} ${resultBox()}`;
+  window.doCalc = () => {
+    const w=getNum('wat-weight');
+    const extra=+document.getElementById('wat-act').value;
+    if(!w) return;
+    const base=w*33;
+    const total=base+extra;
+    const cups=Math.ceil(total/200);
+    showResult(`<div class="result-main">${fmt(total)}<span style="font-size:16px;color:var(--text2)">ml</span></div>
+    <div class="result-row"><span class="rk">약 몇 컵 (200ml)</span><span class="rv accent">${cups}컵</span></div>
+    <div class="result-row"><span class="rk">기본 권장 (33ml×kg)</span><span class="rv">${fmt(base)}ml</span></div>
+    <div class="result-row"><span class="rk">운동 추가량</span><span class="rv">${fmt(extra)}ml</span></div>`);
+  };
+}
+
+// ── 팁 계산기 ──
+function buildTip(b) {
+  b.innerHTML = `
+    ${numField('금액 (원)','tip-amount','50,000')}
+    <div class="field">
+      <label>팁 비율</label>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px">
+        ${[10,15,18,20].map(p=>`
+          <button onclick="tipSetPct(${p})" id="tip-${p}"
+            style="padding:10px 0;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s">
+            ${p}%
+          </button>`).join('')}
+      </div>
+      <input type="text" inputmode="numeric" id="tip-pct" placeholder="직접 입력 (%)"
+        oninput="fmtInput(this);tipClearBtns()"
+        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+    </div>
+    ${btn()} ${resultBox()}`;
+
+  let selectedPct = null;
+  window.tipSetPct = (p) => {
+    selectedPct = p;
+    document.getElementById('tip-pct').value = '';
+    [10,15,18,20].forEach(x=>{
+      const b=document.getElementById('tip-'+x);
+      if(b){b.style.background='var(--surface2)';b.style.color='var(--text2)';b.style.borderColor='var(--border)';}
+    });
+    const btn=document.getElementById('tip-'+p);
+    if(btn){btn.style.background='var(--accent)';btn.style.color='#fff';btn.style.borderColor='var(--accent)';}
+    fieldClear('tip-pct');
+  };
+  window.tipClearBtns = () => {
+    selectedPct = null;
+    [10,15,18,20].forEach(x=>{
+      const b=document.getElementById('tip-'+x);
+      if(b){b.style.background='var(--surface2)';b.style.color='var(--text2)';b.style.borderColor='var(--border)';}
+    });
+  };
+  window.doCalc = () => {
+    fieldClear('tip-amount'); fieldClear('tip-pct');
+    const amount = getNum('tip-amount');
+    const pct = selectedPct || getNum('tip-pct');
+    if(!amount) { fieldError('tip-amount','금액을 입력해주세요'); return; }
+    if(!pct) { fieldError('tip-pct','팁 비율을 선택하거나 입력해주세요'); return; }
+    const tip = amount * pct / 100;
+    const total = amount + tip;
+    showResult(`<div class="result-main">${fmtMoney(Math.round(tip))}<span style="font-size:16px;color:var(--text2)"> 팁</span></div>
+    <div class="result-row"><span class="rk">원래 금액</span><span class="rv">${fmtMoney(amount)}</span></div>
+    <div class="result-row"><span class="rk">팁 (${pct}%)</span><span class="rv accent">${fmtMoney(Math.round(tip))}</span></div>
+    <div class="result-row"><span class="rk">합계</span><span class="rv">${fmtMoney(Math.round(total))}</span></div>`);
+  };
+}
+
+// ── 단위 변환 ──
+function buildUnit(b) {
+  const CATS = {
+    length: {
+      label:'길이', units:[
+        {k:'km',l:'km'},  {k:'m',l:'m'},  {k:'cm',l:'cm'}, {k:'mm',l:'mm'},
+        {k:'mi',l:'마일'},{k:'yd',l:'야드'},{k:'ft',l:'피트'},{k:'in',l:'인치'},
+      ],
+      toBase:{km:1000,m:1,cm:0.01,mm:0.001,mi:1609.344,yd:0.9144,ft:0.3048,in:0.0254},
+    },
+    weight: {
+      label:'무게', units:[
+        {k:'t',l:'톤'},{k:'kg',l:'kg'},{k:'g',l:'g'},{k:'mg',l:'mg'},
+        {k:'lb',l:'파운드'},{k:'oz',l:'온스'},
+      ],
+      toBase:{t:1000,kg:1,g:0.001,mg:0.000001,lb:0.453592,oz:0.028350},
+    },
+    temp: {
+      label:'온도', units:[{k:'c',l:'°C'},{k:'f',l:'°F'},{k:'k',l:'K'}],
+      toBase:null, // 특수 처리
+    },
+    speed: {
+      label:'속도', units:[
+        {k:'kmh',l:'km/h'},{k:'ms',l:'m/s'},{k:'mph',l:'mph'},{k:'knot',l:'노트'},
+      ],
+      toBase:{kmh:1,ms:3.6,mph:1.60934,knot:1.852},
+    },
+    area: {
+      label:'넓이', units:[
+        {k:'km2',l:'km²'},{k:'m2',l:'m²'},{k:'cm2',l:'cm²'},
+        {k:'ha',l:'헥타르'},{k:'py',l:'평'},{k:'ac',l:'에이커'},
+      ],
+      toBase:{km2:1e6,m2:1,cm2:0.0001,ha:10000,py:3.30579,ac:4046.86},
+    },
+  };
+
+  let activeCat = 'length';
+  let fromUnit = 'km';
+  let toUnit = 'm';
+
+  function tempConvert(val, from, to) {
+    let c;
+    if(from==='c') c=val;
+    else if(from==='f') c=(val-32)*5/9;
+    else c=val-273.15;
+    if(to==='c') return c;
+    if(to==='f') return c*9/5+32;
+    return c+273.15;
+  }
+
+  function renderUnit() {
+    const cat = CATS[activeCat];
+    const unitOpts = (sel) => cat.units.map(u=>
+      `<option value="${u.k}" ${u.k===sel?'selected':''}>${u.l}</option>`
+    ).join('');
+    const selStyle = `width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:11px 32px 11px 12px;color:var(--text);font-size:14px;font-family:inherit;outline:none;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%226%27 fill=%27none%27%3E%3Cpath d=%27M1 1l4 4 4-4%27 stroke=%27%239499aa%27 stroke-width=%271.5%27 stroke-linecap=%27round%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 10px center;`;
+
+    b.innerHTML = `
+      <!-- 카테고리 탭 -->
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+        ${Object.entries(CATS).map(([k,v])=>`
+          <button onclick="unitSetCat('${k}')"
+            style="padding:7px 12px;border-radius:20px;border:1.5px solid ${k===activeCat?'var(--accent)':'var(--border)'};
+              background:${k===activeCat?'var(--accent)':'var(--surface)'};
+              color:${k===activeCat?'#fff':'var(--text2)'};font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s">
+            ${v.label}
+          </button>`).join('')}
+      </div>
+
+      ${numField('변환할 값','unit-val','1')}
+
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:16px">
+        <select id="unit-from" onchange="unitFromChange()" style="${selStyle}">${unitOpts(fromUnit)}</select>
+        <button onclick="unitSwap()"
+          style="background:var(--surface2);border:1.5px solid var(--border);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;color:var(--text2);flex-shrink:0;transition:all .15s"
+          onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">⇄</button>
+        <select id="unit-to" onchange="unitToChange()" style="${selStyle}">${unitOpts(toUnit)}</select>
+      </div>
+
+      ${btn('변환하기')} ${resultBox()}`;
+  }
+
+  window.unitSetCat = (k) => {
+    activeCat = k;
+    fromUnit = CATS[k].units[0].k;
+    toUnit   = CATS[k].units[1]?.k || CATS[k].units[0].k;
+    renderUnit();
+  };
+  window.unitFromChange = () => { fromUnit = document.getElementById('unit-from').value; };
+  window.unitToChange   = () => { toUnit   = document.getElementById('unit-to').value; };
+  window.unitSwap       = () => {
+    [fromUnit, toUnit] = [toUnit, fromUnit];
+    renderUnit();
+  };
+  window.doCalc = () => {
+    const val = getNum('unit-val');
+    if(!val && val!==0) return;
+    const cat = CATS[activeCat];
+    const fromLabel = cat.units.find(u=>u.k===fromUnit)?.l || fromUnit;
+    const toLabel   = cat.units.find(u=>u.k===toUnit)?.l   || toUnit;
+    let result;
+    if(activeCat==='temp') {
+      result = tempConvert(val, fromUnit, toUnit);
+    } else {
+      const base = val * cat.toBase[fromUnit];
+      result = base / cat.toBase[toUnit];
+    }
+    const fmtResult = Math.abs(result) >= 1000
+      ? result.toLocaleString('ko-KR', {maximumFractionDigits:4})
+      : parseFloat(result.toPrecision(6)).toString();
+    showResult(`
+      <div class="result-main" style="font-size:26px">${fmtResult}<span style="font-size:15px;color:var(--text2)"> ${toLabel}</span></div>
+      <div class="result-row"><span class="rk">입력</span><span class="rv">${fmt(val)} ${fromLabel}</span></div>
+      <div class="result-row"><span class="rk">결과</span><span class="rv accent">${fmtResult} ${toLabel}</span></div>
+    `);
+  };
+
+  renderUnit();
+}
+
+// ── 자동차 할부 ──
+function buildCarloan(b) {
+  b.innerHTML = `
+    ${manField('차량 가격','cl-price','3,000')}
+    ${manField('선수금 (계약금)','cl-down','500')}
+    ${numField('할부 기간 (개월)','cl-months','60')}
+    ${numField('연 이자율 (%)','cl-rate','5.9')}
+    ${btn()} ${resultBox()}`;
+  window.doCalc = () => {
+    ['cl-price','cl-months','cl-rate'].forEach(fieldClear);
+    const price   = getMan('cl-price');
+    const down    = getMan('cl-down');
+    const months  = getNum('cl-months');
+    const annualR = getNum('cl-rate');
+    if(!price) { fieldError('cl-price','차량 가격을 입력해주세요'); return; }
+    if(!months) { fieldError('cl-months','할부 기간을 입력해주세요'); return; }
+    if(!annualR) { fieldError('cl-rate','이자율을 입력해주세요'); return; }
+    const principal = price - down;
+    if(principal <= 0) { fieldError('cl-down','선수금이 차량 가격보다 큽니다'); return; }
+    const r = annualR / 100 / 12;
+    const monthly = principal * r * Math.pow(1+r,months) / (Math.pow(1+r,months)-1);
+    const totalInterest = monthly * months - principal;
+    const totalPay = monthly * months + down;
+    showResult(`
+      <div class="result-main">${fmtMoney(Math.round(monthly))}<span style="font-size:14px;color:var(--text2)">/월</span></div>
+      <div class="result-row"><span class="rk">차량 가격</span><span class="rv">${fmtMoney(price)}</span></div>
+      <div class="result-row"><span class="rk">선수금</span><span class="rv">${fmtMoney(down)}</span></div>
+      <div class="result-row"><span class="rk">할부 원금</span><span class="rv">${fmtMoney(Math.round(principal))}</span></div>
+      <div class="result-row"><span class="rk">총 이자</span><span class="rv accent">${fmtMoney(Math.round(totalInterest))}</span></div>
+      <div class="result-row"><span class="rk">총 납입액</span><span class="rv">${fmtMoney(Math.round(totalPay))}</span></div>`);
+  };
+}
+
+// ── 비율 계산기 ──
+function buildRatio(b) {
+  b.innerHTML = `
+    <div style="font-size:13px;color:var(--text3);margin-bottom:14px">빈 칸 하나만 비워두면 자동으로 계산합니다</div>
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:6px">
+      <div style="text-align:center;font-size:12px;font-weight:600;color:var(--text3)">A</div>
+      <div></div>
+      <div style="text-align:center;font-size:12px;font-weight:600;color:var(--text3)">B</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:4px">
+      ${_ratioInput('r-a')}
+      <span style="font-size:20px;color:var(--text3);text-align:center">:</span>
+      ${_ratioInput('r-b')}
+    </div>
+    <div style="text-align:center;font-size:18px;color:var(--text3);margin:8px 0">=</div>
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:16px">
+      ${_ratioInput('r-c')}
+      <span style="font-size:20px;color:var(--text3);text-align:center">:</span>
+      ${_ratioInput('r-d')}
+    </div>
+    ${btn('계산하기')} ${resultBox()}`;
+
+  window.doCalc = () => {
+    ['r-a','r-b','r-c','r-d'].forEach(fieldClear);
+    const vals = ['r-a','r-b','r-c','r-d'].map(id=>{
+      const v=(document.getElementById(id)?.value||'').replace(/,/g,'');
+      return v===''?null:parseFloat(v);
+    });
+    const empty = vals.filter(v=>v===null).length;
+    if(empty===0) {
+      // 모두 입력 → 비율 검증
+      const [a,b,c,d]=vals;
+      const ratio1=(a/b).toFixed(6), ratio2=(c/d).toFixed(6);
+      if(ratio1===ratio2) showResult(`<div class="result-main" style="color:var(--accent2)">✓ 성립</div><div class="result-sub">${a}:${b} = ${c}:${d}</div>`);
+      else showResult(`<div class="result-main" style="color:var(--accent3)">✗ 불성립</div><div class="result-sub">${a}:${b} ≠ ${c}:${d}</div>`);
+      return;
+    }
+    if(empty>1) {
+      ['r-a','r-b','r-c','r-d'].forEach((id,i)=>{ if(vals[i]===null) fieldError(id,''); });
+      fieldError('r-a', '빈 칸을 하나만 남겨주세요');
+      return;
+    }
+    const [a,b,c,d]=vals;
+    let result, missingId, missingLabel;
+    if(a===null){ result=b*c/d; missingId='r-a'; missingLabel='A'; }
+    else if(b===null){ result=a*d/c; missingId='r-b'; missingLabel='B'; }
+    else if(c===null){ result=a*d/b; missingId='r-c'; missingLabel='C'; }
+    else { result=b*c/a; missingId='r-d'; missingLabel='D'; }
+    if(!isFinite(result)) { fieldError(missingId,'0으로 나눌 수 없습니다'); return; }
+    const display = Number.isInteger(result)?result:parseFloat(result.toPrecision(8));
+    document.getElementById(missingId).value = display.toLocaleString('ko-KR');
+    showResult(`<div class="result-main">${display.toLocaleString('ko-KR')}</div><div class="result-sub">${missingLabel} = ${display.toLocaleString('ko-KR')}</div>`);
+  };
+}
+function _ratioInput(id) {
+  return `<input type="text" inputmode="decimal" id="${id}" placeholder="?"
+    oninput="fmtInput(this)"
+    style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-size:16px;font-weight:600;font-family:'Space Mono',monospace;outline:none;text-align:center;transition:border-color .2s;"
+    onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">`;
+}
+
+// ══════════════════════════════════
+// INIT
+// ══════════════════════════════════
+renderHome();
+</script>
+</body>
+</html>

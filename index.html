@@ -48,7 +48,7 @@
   .home-title span { color:var(--accent); }
 
   /* search bar */
-  .search-bar { display:flex; align-items:center; gap:10px; background:var(--surface2); border:1.5px solid var(--border); border-radius:14px; padding:13px 16px; cursor:pointer; margin:14px 0; transition:border-color .2s; }
+  .search-bar { display:flex; align-items:center; gap:10px; background:var(--surface2); border:1.5px solid var(--accent); border-radius:14px; padding:13px 16px; cursor:pointer; margin:14px 0; transition:border-color .2s; }
   .search-bar:hover { border-color:var(--accent); }
   .search-bar svg { color:var(--text3); flex-shrink:0; }
   .search-bar span { color:var(--text3); font-size:15px; }
@@ -534,6 +534,38 @@ function fmtInput(el) {
 function getNum(id) { return parseFloat((document.getElementById(id)?.value||'').replace(/,/g,''))||0; }
 // 만원 단위 → 원 변환
 function getMan(id) { return getNum(id) * 10000; }
+// 기간 입력값 → 항상 개월 단위로 반환
+function getMonths(id) {
+  const btn = document.getElementById(id + '-toggle');
+  const val = getNum(id);
+  return (btn && btn.dataset.mode === 'year') ? val * 12 : val;
+}
+// 기간 토글 (개월 ↔ 년)
+function togglePeriod(id) {
+  const btn = document.getElementById(id + '-toggle');
+  const input = document.getElementById(id);
+  const isMonth = btn.dataset.mode === 'month';
+  btn.dataset.mode = isMonth ? 'year' : 'month';
+  btn.textContent = isMonth ? '년' : '개월';
+  btn.style.color = isMonth ? 'var(--accent)' : 'var(--text2)';
+  btn.style.borderColor = isMonth ? 'var(--accent)' : 'var(--border)';
+  input.value = '';
+  input.placeholder = btn.dataset.placeholder_y && isMonth ? btn.dataset.placeholder_y : btn.dataset.placeholder_m;
+}
+// 기간 입력 필드 (개월/년 토글 포함)
+function periodField(label, id, phM, phY) {
+  return `<div class="field"><label>${label}</label>
+    <div style="position:relative">
+      <input type="text" inputmode="numeric" id="${id}" placeholder="${phM}"
+        oninput="fmtInput(this)"
+        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 70px 13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+      <button id="${id}-toggle" type="button" data-mode="month" data-placeholder_m="${phM}" data-placeholder_y="${phY}"
+        onclick="togglePeriod('${id}')"
+        style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--text2);cursor:pointer;transition:all .2s;font-family:inherit;">개월</button>
+    </div>
+  </div>`;
+}
 
 // 만원 단위 숫자를 한글로 변환 (입력값은 만원 단위)
 // 예: 1 → 1만원, 10 → 10만원, 100 → 100만원, 1000 → 1000만원, 10000 → 1억원
@@ -593,12 +625,12 @@ function selectField(label, id, options) {
 function dateField(label, id) {
   return `<div class="field"><label>${label}</label>
     <div style="position:relative">
-      <input type="date" id="${id}"
-        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 46px 13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;appearance:none;-webkit-appearance:none;"
-        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
       <button onclick="document.getElementById('${id}').showPicker?document.getElementById('${id}').showPicker():document.getElementById('${id}').click()"
-        style="position:absolute;right:0;top:0;bottom:0;width:44px;display:flex;align-items:center;justify-content:center;background:var(--surface3);border:none;border-left:1px solid var(--border);border-radius:0 10px 10px 0;cursor:pointer;font-size:17px;color:var(--text2);transition:background .15s"
-        onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='var(--surface3)'">📅</button>
+        style="position:absolute;left:0;top:0;bottom:0;width:46px;display:flex;align-items:center;justify-content:center;background:var(--surface3);border:none;border-right:1px solid var(--border);border-radius:10px 0 0 10px;cursor:pointer;font-size:18px;transition:opacity .15s"
+        onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">📅</button>
+      <input type="date" id="${id}"
+        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px 13px 54px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;appearance:none;-webkit-appearance:none;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
     </div>
   </div>`;
 }
@@ -1214,13 +1246,13 @@ function buildSavings(b) {
   b.innerHTML = `
     ${manField('월 납입액','sav-monthly','30')}
     ${numField('연 이자율 (%)','sav-rate','4.5')}
-    ${numField('기간 (개월)','sav-months','12')}
+    ${periodField('기간','sav-months','12','1')}
     ${selectField('이자 방식','sav-type',[{v:'simple',l:'단리'},{v:'compound',l:'복리'}])}
     ${btn()} ${resultBox()}`;
   window.doCalc = () => {
     const m=getMan('sav-monthly');
     const r=getNum('sav-rate')/100/12;
-    const n=getNum('sav-months');
+    const n=getMonths('sav-months');
     const type=document.getElementById('sav-type').value;
     if(!m||!r||!n) return;
     const principal=m*n;
@@ -1242,28 +1274,35 @@ function buildLoan(b) {
   b.innerHTML = `
     ${manField('대출 원금','ln-principal','10,000')}
     ${numField('연 이자율 (%)','ln-rate','4.5')}
-    ${numField('대출 기간 (개월)','ln-months','360')}
+    ${periodField('대출 기간','ln-months','360','30')}
     ${selectField('상환 방식','ln-type',[{v:'equal',l:'원리금균등'},{v:'principal',l:'원금균등'}])}
     ${btn()} ${resultBox()}`;
   window.doCalc = () => {
     const P=getMan('ln-principal');
     const annualR=getNum('ln-rate');
-    const n=getNum('ln-months');
+    const n=getMonths('ln-months');
     const type=document.getElementById('ln-type').value;
     if(!P||!annualR||!n) return;
     const r=annualR/100/12;
-    let monthly, totalInterest;
+    let monthly, totalInterest, firstInterest, firstPrincipal;
     if(type==='equal') {
       monthly=P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1);
       totalInterest=monthly*n-P;
+      firstInterest=P*r;
+      firstPrincipal=monthly-firstInterest;
     } else {
       const principalPay=P/n;
-      const firstInterest=P*r;
+      firstInterest=P*r;
       monthly=principalPay+firstInterest;
       totalInterest=P*r*(n+1)/2;
+      firstPrincipal=principalPay;
     }
     showResult(`<div class="result-main">${fmtMoney(Math.round(monthly))}<span style="font-size:14px;color:var(--text2)">/월</span></div>
-    <div class="result-row"><span class="rk">총 상환액</span><span class="rv">${fmtMoney(Math.round(P+totalInterest))}</span></div>
+    <div class="result-row" style="margin-top:4px"><span class="rk" style="font-size:12px;color:var(--text3)">첫 달 기준</span></div>
+    <div class="result-row"><span class="rk">　이자</span><span class="rv">${fmtMoney(Math.round(firstInterest))}</span></div>
+    <div class="result-row"><span class="rk">　원금</span><span class="rv">${fmtMoney(Math.round(firstPrincipal))}</span></div>
+    <div class="result-row"><span class="rk">　합계</span><span class="rv accent">${fmtMoney(Math.round(monthly))}</span></div>
+    <div class="result-row" style="margin-top:4px"><span class="rk">총 상환액</span><span class="rv">${fmtMoney(Math.round(P+totalInterest))}</span></div>
     <div class="result-row"><span class="rk">총 이자</span><span class="rv accent">${fmtMoney(Math.round(totalInterest))}</span></div>
     <div class="result-row"><span class="rk">원금</span><span class="rv">${fmtMoney(P)}</span></div>`);
   };
@@ -1936,14 +1975,14 @@ function buildCarloan(b) {
   b.innerHTML = `
     ${manField('차량 가격','cl-price','3,000')}
     ${manField('선수금 (계약금)','cl-down','500')}
-    ${numField('할부 기간 (개월)','cl-months','60')}
+    ${periodField('할부 기간','cl-months','60','5')}
     ${numField('연 이자율 (%)','cl-rate','5.9')}
     ${btn()} ${resultBox()}`;
   window.doCalc = () => {
     ['cl-price','cl-months','cl-rate'].forEach(fieldClear);
     const price   = getMan('cl-price');
     const down    = getMan('cl-down');
-    const months  = getNum('cl-months');
+    const months  = getMonths('cl-months');
     const annualR = getNum('cl-rate');
     if(!price) { fieldError('cl-price','차량 가격을 입력해주세요'); return; }
     if(!months) { fieldError('cl-months','할부 기간을 입력해주세요'); return; }
@@ -1954,9 +1993,15 @@ function buildCarloan(b) {
     const monthly = principal * r * Math.pow(1+r,months) / (Math.pow(1+r,months)-1);
     const totalInterest = monthly * months - principal;
     const totalPay = monthly * months + down;
+    const firstInterest = principal * r;
+    const firstPrincipal = monthly - firstInterest;
     showResult(`
       <div class="result-main">${fmtMoney(Math.round(monthly))}<span style="font-size:14px;color:var(--text2)">/월</span></div>
-      <div class="result-row"><span class="rk">차량 가격</span><span class="rv">${fmtMoney(price)}</span></div>
+      <div class="result-row" style="margin-top:4px"><span class="rk" style="font-size:12px;color:var(--text3)">첫 달 기준</span></div>
+      <div class="result-row"><span class="rk">　이자</span><span class="rv">${fmtMoney(Math.round(firstInterest))}</span></div>
+      <div class="result-row"><span class="rk">　원금</span><span class="rv">${fmtMoney(Math.round(firstPrincipal))}</span></div>
+      <div class="result-row"><span class="rk">　합계</span><span class="rv accent">${fmtMoney(Math.round(monthly))}</span></div>
+      <div class="result-row" style="margin-top:4px"><span class="rk">차량 가격</span><span class="rv">${fmtMoney(price)}</span></div>
       <div class="result-row"><span class="rk">선수금</span><span class="rv">${fmtMoney(down)}</span></div>
       <div class="result-row"><span class="rk">할부 원금</span><span class="rv">${fmtMoney(Math.round(principal))}</span></div>
       <div class="result-row"><span class="rk">총 이자</span><span class="rv accent">${fmtMoney(Math.round(totalInterest))}</span></div>

@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.asistobe.rncal"
     },
     "android": {
       "adaptiveIcon": {
@@ -43,6 +44,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d5acb4cc-e1f0-4c04-8865-0b889acdfb66"
+      }
+    },
+    "owner": "asistobe"
   }
 }

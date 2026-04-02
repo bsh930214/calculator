@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 
 const CALCULATOR_URL = 'https://calculator-virid-ten-64.vercel.app/';
+const BG_COLOR = '#0e0f13';
 
 export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
@@ -33,7 +34,7 @@ export default function HomeScreen() {
         />
         {loading ? (
           <View style={styles.spinnerOverlay} pointerEvents="none">
-            <ActivityIndicator size="large" />
+            <ActivityIndicator size="large" color="#f0f1f5" />
           </View>
         ) : null}
       </View>
@@ -44,7 +45,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: BG_COLOR,
   },
   container: {
     flex: 1,
@@ -56,6 +57,6 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.85)',
+    backgroundColor: 'rgba(14,15,19,0.85)',
   },
 });

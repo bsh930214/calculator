@@ -495,10 +495,10 @@ function field(label, id, type='number', placeholder='', extra='') {
   return `<div class="field"><label>${label}</label><input type="${type}" id="${id}" placeholder="${placeholder}" ${extra}></div>`;
 }
 // 콤마 포맷 숫자 입력 (text 타입으로 콤마 실시간 표시)
-function numField(label, id, placeholder='', suffix='') {
+function numField(label, id, placeholder='', suffix='', decimal=false) {
   return `<div class="field"><label>${label}</label>
     <div style="position:relative">
-      <input type="text" inputmode="numeric" id="${id}" placeholder="${placeholder}"
+      <input type="text" inputmode="${decimal?'decimal':'numeric'}" id="${id}" placeholder="${placeholder}"
         oninput="fmtInput(this)"
         style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px ${suffix?'36px':' 14px'} 13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;"
         onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
@@ -1209,7 +1209,7 @@ function buildDiscount(b) {
     </div>
     <div id="disc-fields">
       ${numField('정가 (원)','disc-original','100,000')}
-      ${numField('할인율 (%)','disc-rate','20')}
+      ${numField('할인율 (%)','disc-rate','20','',true)}
     </div>
     ${btn()} ${resultBox()}`;
   window.doCalc = () => {
@@ -1236,8 +1236,8 @@ function buildDiscount(b) {
   window.discModeChange = () => {
     const mode = document.querySelector('input[name=disc-mode]:checked').value;
     document.getElementById('disc-fields').innerHTML = mode==='normal'
-      ? `${numField('정가 (원)','disc-original','100,000')}${numField('할인율 (%)','disc-rate','20')}`
-      : `${numField('할인가 (원)','disc-original','80,000')}${numField('할인율 (%)','disc-rate','20')}`;
+      ? `${numField('정가 (원)','disc-original','100,000')}${numField('할인율 (%)','disc-rate','20','',true)}`
+      : `${numField('할인가 (원)','disc-original','80,000')}${numField('할인율 (%)','disc-rate','20','',true)}`;
   };
 }
 
@@ -1245,7 +1245,7 @@ function buildDiscount(b) {
 function buildSavings(b) {
   b.innerHTML = `
     ${manField('월 납입액','sav-monthly','30')}
-    ${numField('연 이자율 (%)','sav-rate','4.5')}
+    ${numField('연 이자율 (%)','sav-rate','4.5','',true)}
     ${periodField('기간','sav-months','12','1')}
     ${selectField('이자 방식','sav-type',[{v:'simple',l:'단리'},{v:'compound',l:'복리'}])}
     ${btn()} ${resultBox()}`;
@@ -1273,7 +1273,7 @@ function buildSavings(b) {
 function buildLoan(b) {
   b.innerHTML = `
     ${manField('대출 원금','ln-principal','10,000')}
-    ${numField('연 이자율 (%)','ln-rate','4.5')}
+    ${numField('연 이자율 (%)','ln-rate','4.5','',true)}
     ${periodField('대출 기간','ln-months','360','30')}
     ${selectField('상환 방식','ln-type',[{v:'equal',l:'원리금균등'},{v:'principal',l:'원금균등'}])}
     ${btn()} ${resultBox()}`;
@@ -1498,7 +1498,7 @@ function buildExchange(b) {
       <!-- 금액 입력 -->
       <div class="field" style="margin-bottom:10px">
         <label>금액</label>
-        <input type="text" inputmode="numeric" id="exc-amount" placeholder="100,000"
+        <input type="text" inputmode="decimal" id="exc-amount" placeholder="100,000"
           oninput="fmtInput(this)"
           style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-size:18px;font-weight:700;font-family:'Space Mono',monospace;outline:none;transition:border-color .2s"
           onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
@@ -1565,7 +1565,7 @@ function buildInvest(b) {
   b.innerHTML = `
     ${manField('투자 원금','inv-principal','1,000')}
     ${manField('현재 가치','inv-current','1,350')}
-    ${numField('투자 기간 (년)','inv-years','3')}
+    ${numField('투자 기간 (년)','inv-years','3','',true)}
     ${btn()} ${resultBox()}`;
   window.doCalc = () => {
     const P=getMan('inv-principal');
@@ -1613,7 +1613,7 @@ function buildAcqutax(b) {
 // ── BMI ──
 function buildBmi(b) {
   b.innerHTML = `
-    <div class="field-row">${numField('키 (cm)','bmi-h','170')}${numField('체중 (kg)','bmi-w','65')}</div>
+    <div class="field-row">${numField('키 (cm)','bmi-h','170','',true)}${numField('체중 (kg)','bmi-w','65','',true)}</div>
     ${btn()} ${resultBox()}`;
   window.doCalc = () => {
     const h=getNum('bmi-h')/100;
@@ -1639,7 +1639,7 @@ function buildCalorie(b) {
   b.innerHTML = `
     <div class="field-row">${numField('나이','cal-age','30')}
     <div class="field"><label>성별</label><div class="radio-group"><label><input type="radio" name="cal-sex" value="m" checked><span>남</span></label><label><input type="radio" name="cal-sex" value="f"><span>여</span></label></div></div></div>
-    <div class="field-row">${numField('키 (cm)','cal-h','170')}${numField('체중 (kg)','cal-w','65')}</div>
+    <div class="field-row">${numField('키 (cm)','cal-h','170','',true)}${numField('체중 (kg)','cal-w','65','',true)}</div>
     ${selectField('활동량','cal-act',[
       {v:'1.2',l:'거의 안 함 (좌식)'},
       {v:'1.375',l:'가벼운 운동 (주 1-3회)'},
@@ -1716,9 +1716,9 @@ function buildPace(b) {
   function renderPaceInputs() {
     const mode=document.getElementById('pace-mode').value;
     const el=document.getElementById('pace-inputs');
-    if(mode==='pace') el.innerHTML=`${numField('거리 (km)','p-dist','5')}${numField('시간 (분)','p-time','30')}`;
-    else if(mode==='time') el.innerHTML=`${numField('거리 (km)','p-dist','10')}<div class="field"><label>페이스 (분 : 초 /km)</label><div class="field-row"><input type="text" inputmode="numeric" id="p-pmin" placeholder="5" style="${paceInStyle}"><input type="text" inputmode="numeric" id="p-psec" placeholder="30" style="${paceInStyle}"></div></div>`;
-    else el.innerHTML=`${numField('시간 (분)','p-time','60')}<div class="field"><label>페이스 (분 : 초 /km)</label><div class="field-row"><input type="text" inputmode="numeric" id="p-pmin" placeholder="5" style="${paceInStyle}"><input type="text" inputmode="numeric" id="p-psec" placeholder="30" style="${paceInStyle}"></div></div>`;
+    if(mode==='pace') el.innerHTML=`${numField('거리 (km)','p-dist','5','',true)}${numField('시간 (분)','p-time','30','',true)}`;
+    else if(mode==='time') el.innerHTML=`${numField('거리 (km)','p-dist','10','',true)}<div class="field"><label>페이스 (분 : 초 /km)</label><div class="field-row"><input type="text" inputmode="numeric" id="p-pmin" placeholder="5" style="${paceInStyle}"><input type="text" inputmode="numeric" id="p-psec" placeholder="30" style="${paceInStyle}"></div></div>`;
+    else el.innerHTML=`${numField('시간 (분)','p-time','60','',true)}<div class="field"><label>페이스 (분 : 초 /km)</label><div class="field-row"><input type="text" inputmode="numeric" id="p-pmin" placeholder="5" style="${paceInStyle}"><input type="text" inputmode="numeric" id="p-psec" placeholder="30" style="${paceInStyle}"></div></div>`;
   }
   document.getElementById('pace-mode').addEventListener('change',renderPaceInputs);
   renderPaceInputs();
@@ -1754,7 +1754,7 @@ function buildPace(b) {
 // ── 1RM ──
 function buildOrm(b) {
   b.innerHTML = `
-    ${numField('무게 (kg)','orm-weight','80')}
+    ${numField('무게 (kg)','orm-weight','80','',true)}
     ${numField('반복 횟수','orm-reps','5')}
     ${btn()} ${resultBox()}`;
   window.doCalc = () => {
@@ -1779,7 +1779,7 @@ function buildOrm(b) {
 // ── 물 섭취량 ──
 function buildWater(b) {
   b.innerHTML = `
-    ${numField('체중 (kg)','wat-weight','65')}
+    ${numField('체중 (kg)','wat-weight','65','',true)}
     ${selectField('활동량','wat-act',[{v:'0',l:'보통 (비활동적)'},{v:'500',l:'가벼운 운동 (주 1-3회)'},{v:'700',l:'보통 운동 (주 3-5회)'},{v:'1000',l:'활발한 운동 (주 6-7회)'}])}
     ${btn()} ${resultBox()}`;
   window.doCalc = () => {
@@ -1809,7 +1809,7 @@ function buildTip(b) {
             ${p}%
           </button>`).join('')}
       </div>
-      <input type="text" inputmode="numeric" id="tip-pct" placeholder="직접 입력 (%)"
+      <input type="text" inputmode="decimal" id="tip-pct" placeholder="직접 입력 (%)"
         oninput="fmtInput(this);tipClearBtns()"
         style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:11px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;"
         onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
@@ -1919,7 +1919,7 @@ function buildUnit(b) {
           </button>`).join('')}
       </div>
 
-      ${numField('변환할 값','unit-val','1')}
+      ${numField('변환할 값','unit-val','1','',true)}
 
       <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:16px">
         <select id="unit-from" onchange="unitFromChange()" style="${selStyle}">${unitOpts(fromUnit)}</select>
@@ -1976,7 +1976,7 @@ function buildCarloan(b) {
     ${manField('차량 가격','cl-price','3,000')}
     ${manField('선수금 (계약금)','cl-down','500')}
     ${periodField('할부 기간','cl-months','60','5')}
-    ${numField('연 이자율 (%)','cl-rate','5.9')}
+    ${numField('연 이자율 (%)','cl-rate','5.9','',true)}
     ${btn()} ${resultBox()}`;
   window.doCalc = () => {
     ['cl-price','cl-months','cl-rate'].forEach(fieldClear);

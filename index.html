@@ -677,7 +677,7 @@ function buildBasic(b) {
       <button class="ckey k-clr" onclick="bcKey('AC')">AC</button>
       <button class="ckey k-fn"  onclick="bcKey('+/-')">+/-</button>
       <button class="ckey k-fn"  onclick="bcKey('%')">%</button>
-      <button class="ckey k-op"  onclick="bcKey('÷')">÷</button>
+      <button class="ckey k-op"  onclick="bcKey('÷')">/</button>
 
       <button class="ckey k-num" onclick="bcKey('7')">7</button>
       <button class="ckey k-num" onclick="bcKey('8')">8</button>
@@ -794,7 +794,7 @@ function buildSci(b) {
       <button class="ckey k-clr" onclick="scKey('AC')">AC</button>
       <button class="ckey k-fn"  onclick="scKey('DEL')">⌫</button>
       <button class="ckey k-sci" onclick="scKey('π')">π</button>
-      <button class="ckey k-op"  onclick="scKey('÷')">÷</button>
+      <button class="ckey k-op"  onclick="scKey('÷')">/</button>
 
       <button class="ckey k-num" onclick="scKey('7')">7</button>
       <button class="ckey k-num" onclick="scKey('8')">8</button>
@@ -1672,21 +1672,52 @@ function buildInvest(b) {
       };
     } else {
       b.innerHTML = `${tabsHTML()}
-        ${manField('투자 원금','inv2-principal','1,000')}
+        ${manField('시작 원금','inv2-principal','1,000')}
+        <div class="field"><label>적립 금액 <span style="font-size:11px;color:var(--text3)">(선택, 만원)</span></label>
+          <div style="position:relative">
+            <input type="text" inputmode="numeric" id="inv2-contrib" placeholder="0"
+              oninput="fmtInput(this)"
+              style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 70px 13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            <button id="inv2-contrib-toggle" type="button" data-mode="month"
+              onclick="toggleInvContrib()"
+              style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit;transition:all .2s;">월</button>
+          </div>
+        </div>
         ${numField('목표 연평균 수익률 (%)','inv2-cagr','8','',true)}
         ${numField('투자 기간 (년)','inv2-years','10','',true)}
         ${btn()} ${resultBox()}`;
+      window.toggleInvContrib = () => {
+        const tog = document.getElementById('inv2-contrib-toggle');
+        const isMonth = tog.dataset.mode === 'month';
+        tog.dataset.mode = isMonth ? 'year' : 'month';
+        tog.textContent = isMonth ? '연' : '월';
+        tog.style.color = isMonth ? 'var(--accent)' : 'var(--text2)';
+        tog.style.borderColor = isMonth ? 'var(--accent)' : 'var(--border)';
+      };
       window.doCalc = () => {
         const P=getMan('inv2-principal'), r=getNum('inv2-cagr'), Y=getNum('inv2-years');
         if(!P||!r||!Y) return;
+        const C=getMan('inv2-contrib')||0;
+        const contribMode=document.getElementById('inv2-contrib-toggle').dataset.mode;
         const rate=r/100;
         const yearlyData=[];
-        for(let i=1;i<=Y;i++) yearlyData.push(Math.round(P*Math.pow(1+rate,i)));
+        if(contribMode==='month') {
+          const mr=Math.pow(1+rate,1/12)-1;
+          let val=P;
+          for(let y=1;y<=Y;y++) { for(let m=0;m<12;m++) val=(val+C)*(1+mr); yearlyData.push(Math.round(val)); }
+        } else {
+          let val=P;
+          for(let y=1;y<=Y;y++) { val=(val+C)*(1+rate); yearlyData.push(Math.round(val)); }
+        }
         const final=yearlyData[yearlyData.length-1];
+        const totalContrib=contribMode==='month'?C*12*Y:C*Y;
+        const totalInvested=P+totalContrib;
         const rows=yearlyData.map((v,i)=>`<div class="result-row"><span class="rk">${i+1}년 후</span><span class="rv">${fmtMoney(v)}</span></div>`).join('');
         showResult(`<div class="result-main">${fmtMoney(final)}</div>
-          <div class="result-row"><span class="rk">총 수익</span><span class="rv accent">${fmtMoney(final-P)}</span></div>
-          <div class="result-row"><span class="rk">수익률</span><span class="rv">${((final-P)/P*100).toFixed(1)}%</span></div>
+          <div class="result-row"><span class="rk">총 투자금</span><span class="rv">${fmtMoney(Math.round(totalInvested))}</span></div>
+          <div class="result-row"><span class="rk">총 수익</span><span class="rv accent">${fmtMoney(Math.round(final-totalInvested))}</span></div>
+          <div class="result-row"><span class="rk">수익률</span><span class="rv">${((final-totalInvested)/totalInvested*100).toFixed(1)}%</span></div>
           ${drawChart(yearlyData)}
           <div style="margin-top:12px;font-size:12px;color:var(--text3);font-weight:600;letter-spacing:.05em">연도별 자산</div>
           ${rows}`);
@@ -1885,10 +1916,16 @@ function buildPace(b) {
     const pm=Math.floor(paceSecPerKm/60), ps=Math.round(paceSecPerKm%60);
     const speedKmh=3600/paceSecPerKm;
     const raceRows=races.map(r=>{const t=paceSecPerKm*r.km;const h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=Math.round(t%60);return `<div class="result-row"><span class="rk">${r.name}</span><span class="rv">${h>0?h+'시간 ':''}${m}분 ${s}초</span></div>`;}).join('');
-    showResult(`<div class="result-main">${pm}:${ps<10?'0'+ps:ps}<span style="font-size:16px;color:var(--text2)">/km</span></div>
-    <div class="result-row"><span class="rk">속도</span><span class="rv accent">${speedKmh.toFixed(2)} km/h</span></div>
-    <div class="result-row"><span class="rk">총 거리</span><span class="rv">${dist.toFixed(2)} km</span></div>
-    <div style="margin-top:8px;font-size:12px;color:var(--text3);font-weight:600;letter-spacing:.05em">이 페이스로 완주 시</div>${raceRows}`);
+    if(mode==='dist') {
+      showResult(`<div class="result-main">${dist.toFixed(2)}<span style="font-size:16px;color:var(--text2)"> km</span></div>
+      <div class="result-row"><span class="rk">페이스</span><span class="rv">${pm}:${ps<10?'0'+ps:ps} /km</span></div>
+      <div class="result-row"><span class="rk">속도</span><span class="rv accent">${speedKmh.toFixed(2)} km/h</span></div>`);
+    } else {
+      showResult(`<div class="result-main">${pm}:${ps<10?'0'+ps:ps}<span style="font-size:16px;color:var(--text2)">/km</span></div>
+      <div class="result-row"><span class="rk">속도</span><span class="rv accent">${speedKmh.toFixed(2)} km/h</span></div>
+      <div class="result-row"><span class="rk">총 거리</span><span class="rv">${dist.toFixed(2)} km</span></div>
+      <div style="margin-top:8px;font-size:12px;color:var(--text3);font-weight:600;letter-spacing:.05em">이 페이스로 완주 시</div>${raceRows}`);
+    }
   };
 }
 

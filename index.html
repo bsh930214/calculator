@@ -213,7 +213,7 @@
   .ckey { border:none; border-radius:12px; font-family:'Space Mono','Pretendard',sans-serif; font-size:17px; font-weight:700; cursor:pointer; transition:all .12s; aspect-ratio:1; display:flex; align-items:center; justify-content:center; user-select:none; -webkit-user-select:none; }
   .ckey:active { transform:scale(.93); opacity:.85; }
   .ckey.k-num  { background:var(--surface3); color:var(--text);    font-size:20px; }
-  .ckey.k-op   { background:#2a2e42;        color:var(--accent);   font-size:22px; }
+  .ckey.k-op   { background:#2a2e42;        color:var(--accent);   font-size:22px; font-family:system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif; }
   .ckey.k-eq   { background:var(--accent);  color:#fff; }
   .ckey.k-fn   { background:var(--surface2); color:var(--text2);   font-size:13px; }
   .ckey.k-clr  { background:#2e1e1e;        color:var(--accent3);  }
@@ -624,12 +624,17 @@ function updateKo(id) {
 function selectField(label, id, options) {
   return `<div class="field"><label>${label}</label><select id="${id}">${options.map(o=>`<option value="${o.v}">${o.l}</option>`).join('')}</select></div>`;
 }
-// 날짜 필드
+// 날짜 필드 — 왼쪽 캘린더 버튼, 오른쪽 네이티브 아이콘 숨김
 function dateField(label, id) {
   return `<div class="field"><label>${label}</label>
-    <input type="date" id="${id}"
-      style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;appearance:none;-webkit-appearance:none;"
-      onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+    <div style="position:relative">
+      <button onclick="document.getElementById('${id}').showPicker?document.getElementById('${id}').showPicker():document.getElementById('${id}').click()"
+        style="position:absolute;left:0;top:0;bottom:0;width:46px;display:flex;align-items:center;justify-content:center;background:var(--surface3);border:none;border-right:1px solid var(--border);border-radius:10px 0 0 10px;cursor:pointer;font-size:18px;transition:opacity .15s"
+        onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">📅</button>
+      <input type="date" id="${id}"
+        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px 13px 54px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;appearance:none;-webkit-appearance:none;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+    </div>
   </div>`;
 }
 // 필드 에러 표시 / 클리어
@@ -1222,10 +1227,10 @@ function buildDaysfrom(b) {
     const weeks=Math.floor(absDiff/7), days=absDiff%7;
     const isFuture=diff>0, isPast=diff<0;
     const color=isFuture?'var(--accent2)':isPast?'var(--accent3)':'var(--text)';
-    const label=isFuture?' 후':isPast?' 전':'';
-    showResult(`<div class="result-main" style="color:${color}">${fmt(absDiff)}<span style="font-size:16px;color:${color}">${label}</span></div>
-    <div class="result-row"><span class="rk">주 단위</span><span class="rv">${weeks}주 ${days}일${label}</span></div>
-    <div class="result-row"><span class="rk">개월 (근사)</span><span class="rv accent">${(absDiff/30.44).toFixed(1)}개월${label}</span></div>`);
+    const label=isFuture?'일 후':isPast?'일 전':'일';
+    showResult(`<div class="result-main" style="color:${color}">${fmt(absDiff)}<span style="font-size:16px;color:${color}"> ${label}</span></div>
+    <div class="result-row"><span class="rk">주 단위</span><span class="rv">${weeks}주 ${days}일${isFuture?' 후':isPast?' 전':''}</span></div>
+    <div class="result-row"><span class="rk">개월 (근사)</span><span class="rv accent">${(absDiff/30.44).toFixed(1)}개월${isFuture?' 후':isPast?' 전':''}</span></div>`);
   };
 }
 
@@ -1628,7 +1633,7 @@ function buildInvest(b) {
   function tabsHTML() {
     return `<div style="display:flex;gap:8px;margin-bottom:16px">
       <button class="round-tab${activeTab===0?' active':''}" onclick="invTab(0)">수익률 계산</button>
-      <button class="round-tab${activeTab===1?' active':''}" onclick="invTab(1)">미래 가치</button>
+      <button class="round-tab${activeTab===1?' active':''}" onclick="invTab(1)">수익 예상</button>
     </div>`;
   }
 
@@ -1828,7 +1833,30 @@ function buildPace(b) {
   function renderPaceInputs() {
     const mode=document.getElementById('pace-mode').value;
     const el=document.getElementById('pace-inputs');
-    const distField=`<div class="field"><label>거리 (km)</label><input type="text" inputmode="decimal" id="p-dist" list="pace-dist-list" placeholder="직접 입력 또는 선택" style="${paceInStyle}"><datalist id="pace-dist-list"><option value="5">5km</option><option value="10">10km</option><option value="21.0975">하프마라톤</option><option value="42.195">풀마라톤</option></datalist></div>`;
+    const distBtns=[{l:'5K',v:'5'},{l:'10K',v:'10'},{l:'하프',v:'21.0975'},{l:'풀',v:'42.195'}];
+    const distField=`<div class="field"><label>거리 (km)</label>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px">
+        ${distBtns.map(d=>`<button onclick="paceSetDist('${d.v}')" id="pdist-${d.v}"
+          style="padding:10px 0;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s">${d.l}</button>`).join('')}
+      </div>
+      <input type="text" inputmode="decimal" id="p-dist" placeholder="직접 입력 (km)"
+        oninput="paceClearDistBtns()" style="${paceInStyle}">
+    </div>`;
+    window.paceSetDist = (v) => {
+      document.getElementById('p-dist').value = v;
+      [{l:'5K',v:'5'},{l:'10K',v:'10'},{l:'하프',v:'21.0975'},{l:'풀',v:'42.195'}].forEach(d=>{
+        const b=document.getElementById('pdist-'+d.v);
+        if(b){b.style.background='var(--surface2)';b.style.color='var(--text2)';b.style.borderColor='var(--border)';}
+      });
+      const sel=document.getElementById('pdist-'+v);
+      if(sel){sel.style.background='var(--accent)';sel.style.color='#fff';sel.style.borderColor='var(--accent)';}
+    };
+    window.paceClearDistBtns = () => {
+      [{l:'5K',v:'5'},{l:'10K',v:'10'},{l:'하프',v:'21.0975'},{l:'풀',v:'42.195'}].forEach(d=>{
+        const b=document.getElementById('pdist-'+d.v);
+        if(b){b.style.background='var(--surface2)';b.style.color='var(--text2)';b.style.borderColor='var(--border)';}
+      });
+    };
     if(mode==='pace') el.innerHTML=`${distField}${numField('시간 (분)','p-time','30','',true)}`;
     else if(mode==='time') el.innerHTML=`${distField}<div class="field"><label>페이스 (분 : 초 /km)</label><div class="field-row"><input type="text" inputmode="numeric" id="p-pmin" placeholder="5" style="${paceInStyle}"><input type="text" inputmode="numeric" id="p-psec" placeholder="30" style="${paceInStyle}"></div></div>`;
     else el.innerHTML=`${numField('시간 (분)','p-time','60','',true)}<div class="field"><label>페이스 (분 : 초 /km)</label><div class="field-row"><input type="text" inputmode="numeric" id="p-pmin" placeholder="5" style="${paceInStyle}"><input type="text" inputmode="numeric" id="p-psec" placeholder="30" style="${paceInStyle}"></div></div>`;

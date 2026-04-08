@@ -289,6 +289,9 @@
 </div>
 
 <script>
+// ── 환율 API 미리 fetch ──
+const _excRatesFetch = fetch('/api/rates').then(r => r.json()).catch(() => null);
+
 // ══════════════════════════════════
 // DATA
 // ══════════════════════════════════
@@ -1431,19 +1434,21 @@ function buildAnnual(b) {
 }
 
 // ── 환율 ──
-function buildExchange(b) {
+async function buildExchange(b) {
+  const _ratesData = await _excRatesFetch;
+  const _updatedAt = _ratesData?.updated_at || null;
   const CURRENCIES = [
-    { code:'KRW', flag:'🇰🇷', name:'원',         rate:1     },
-    { code:'USD', flag:'🇺🇸', name:'달러',        rate:1508  },
-    { code:'JPY', flag:'🇯🇵', name:'엔',          rate:9.43  },
-    { code:'EUR', flag:'🇪🇺', name:'유로',        rate:1739  },
-    { code:'CNY', flag:'🇨🇳', name:'위안',        rate:219   },
-    { code:'GBP', flag:'🇬🇧', name:'파운드',      rate:1996  },
-    { code:'HKD', flag:'🇭🇰', name:'홍콩달러',    rate:192   },
-    { code:'SGD', flag:'🇸🇬', name:'싱가포르달러', rate:1174  },
-    { code:'AUD', flag:'🇦🇺', name:'호주달러',    rate:1043  },
-    { code:'THB', flag:'🇹🇭', name:'바트',        rate:46.3  },
-    { code:'VND', flag:'🇻🇳', name:'동',          rate:0.057 },
+    { code:'KRW', flag:'🇰🇷', name:'원',         rate: _ratesData?.rates?.KRW ?? 1     },
+    { code:'USD', flag:'🇺🇸', name:'달러',        rate: _ratesData?.rates?.USD ?? 1508  },
+    { code:'JPY', flag:'🇯🇵', name:'엔',          rate: _ratesData?.rates?.JPY ?? 9.43  },
+    { code:'EUR', flag:'🇪🇺', name:'유로',        rate: _ratesData?.rates?.EUR ?? 1739  },
+    { code:'CNY', flag:'🇨🇳', name:'위안',        rate: _ratesData?.rates?.CNY ?? 219   },
+    { code:'GBP', flag:'🇬🇧', name:'파운드',      rate: _ratesData?.rates?.GBP ?? 1996  },
+    { code:'HKD', flag:'🇭🇰', name:'홍콩달러',    rate: _ratesData?.rates?.HKD ?? 192   },
+    { code:'SGD', flag:'🇸🇬', name:'싱가포르달러', rate: _ratesData?.rates?.SGD ?? 1174  },
+    { code:'AUD', flag:'🇦🇺', name:'호주달러',    rate: _ratesData?.rates?.AUD ?? 1043  },
+    { code:'THB', flag:'🇹🇭', name:'바트',        rate: _ratesData?.rates?.THB ?? 46.3  },
+    { code:'VND', flag:'🇻🇳', name:'동',          rate: _ratesData?.rates?.VND ?? 0.057 },
   ];
   const byCode = {};
   CURRENCIES.forEach(c => byCode[c.code] = c);
@@ -1520,7 +1525,11 @@ function buildExchange(b) {
       <!-- 환율 한 줄 표시 -->
       <div style="font-size:12px;color:var(--text3);text-align:center;margin-bottom:14px">
         ${from.flag} 1 ${from.name} = ${to.flag} <span style="color:var(--accent2);font-weight:600">${rateDisplay}</span> ${to.name}
-        <span style="color:var(--text3);margin-left:4px;font-size:11px">(참고용)</span>
+        <div style="font-size:11px;color:var(--text3);margin-top:4px">
+          ${_updatedAt
+            ? '업데이트: ' + new Date(_updatedAt).toLocaleDateString('ko-KR', {month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'})
+            : '⚠️ 기준 환율 (참고용)'}
+        </div>
       </div>
 
       <button class="calc-btn" onclick="excCalc()">환산하기</button>

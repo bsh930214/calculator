@@ -1920,6 +1920,12 @@ function buildPace(b) {
       showResult(`<div class="result-main">${dist.toFixed(2)}<span style="font-size:16px;color:var(--text2)"> km</span></div>
       <div class="result-row"><span class="rk">페이스</span><span class="rv">${pm}:${ps<10?'0'+ps:ps} /km</span></div>
       <div class="result-row"><span class="rk">속도</span><span class="rv accent">${speedKmh.toFixed(2)} km/h</span></div>`);
+    } else if(mode==='time') {
+      const th=Math.floor(totalMin/60), tm=Math.floor(totalMin%60), ts=Math.round((totalMin*60)%60);
+      showResult(`<div class="result-main">${th>0?th+'시간 ':''}${tm}분 ${ts}초</div>
+      <div class="result-row"><span class="rk">페이스</span><span class="rv">${pm}:${ps<10?'0'+ps:ps} /km</span></div>
+      <div class="result-row"><span class="rk">속도</span><span class="rv accent">${speedKmh.toFixed(2)} km/h</span></div>
+      <div style="margin-top:8px;font-size:12px;color:var(--text3);font-weight:600;letter-spacing:.05em">이 페이스로 완주 시</div>${raceRows}`);
     } else {
       showResult(`<div class="result-main">${pm}:${ps<10?'0'+ps:ps}<span style="font-size:16px;color:var(--text2)">/km</span></div>
       <div class="result-row"><span class="rk">속도</span><span class="rv accent">${speedKmh.toFixed(2)} km/h</span></div>

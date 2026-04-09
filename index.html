@@ -129,6 +129,8 @@
   .field label { display:block; font-size:12px; font-weight:600; color:var(--text2); letter-spacing:.05em; margin-bottom:6px; }
   .field input, .field select { width:100%; background:var(--surface2); border:1.5px solid var(--border); border-radius:10px; padding:13px 14px; color:var(--text); font-size:15px; font-family:inherit; outline:none; transition:border-color .2s; appearance:none; }
   .field input:focus, .field select:focus { border-color:var(--accent); }
+  .field input::placeholder { color:var(--text3); }
+  input::placeholder { color:var(--text3); }
   /* hide number spinners */
   .field input[type=number]::-webkit-inner-spin-button,
   .field input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }

@@ -1211,27 +1211,98 @@ function buildDday(b) {
 
 // ── 오늘 기준 며칠 ──
 function buildDaysfrom(b) {
-  b.innerHTML = `
-    ${dateField('시작 날짜','df-start')}
-    ${dateField('종료 날짜','df-end')}
-    ${btn()} ${resultBox()}`;
-  window.doCalc = () => {
-    ['df-start','df-end'].forEach(fieldClear);
-    const sv=document.getElementById('df-start').value;
-    const ev=document.getElementById('df-end').value;
-    if(!sv) { fieldError('df-start','시작 날짜를 선택해주세요'); return; }
-    if(!ev) { fieldError('df-end','종료 날짜를 선택해주세요'); return; }
-    const s=new Date(sv), e=new Date(ev);
-    const diff=Math.round((e-s)/864e5);
-    const absDiff=Math.abs(diff);
-    const weeks=Math.floor(absDiff/7), days=absDiff%7;
-    const isFuture=diff>0, isPast=diff<0;
-    const color=isFuture?'var(--accent2)':isPast?'var(--accent3)':'var(--text)';
-    const label=isFuture?'일 후':isPast?'일 전':'일';
-    showResult(`<div class="result-main" style="color:${color}">${fmt(absDiff)}<span style="font-size:16px;color:${color}"> ${label}</span></div>
-    <div class="result-row"><span class="rk">주 단위</span><span class="rv">${weeks}주 ${days}일${isFuture?' 후':isPast?' 전':''}</span></div>
-    <div class="result-row"><span class="rk">개월 (근사)</span><span class="rv accent">${(absDiff/30.44).toFixed(1)}개월${isFuture?' 후':isPast?' 전':''}</span></div>`);
-  };
+  let activeTab = 0;
+
+  window.dfTodayStr = () => new Date().toISOString().split('T')[0];
+
+  function dateFieldToday(label, id) {
+    return `<div class="field"><label>${label}</label>
+      <div style="position:relative">
+        <button onclick="document.getElementById('${id}').showPicker?document.getElementById('${id}').showPicker():document.getElementById('${id}').click()"
+          style="position:absolute;left:0;top:0;bottom:0;width:46px;display:flex;align-items:center;justify-content:center;background:var(--surface3);border:none;border-right:1px solid var(--border);border-radius:10px 0 0 10px;cursor:pointer;font-size:18px;transition:opacity .15s"
+          onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">📅</button>
+        <input type="date" id="${id}"
+          style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 58px 13px 54px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;appearance:none;-webkit-appearance:none;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        <button onclick="document.getElementById('${id}').value=dfTodayStr()"
+          style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .2s"
+          onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">오늘</button>
+      </div>
+    </div>`;
+  }
+
+  function tabsHTML() {
+    return `<div style="display:flex;gap:8px;margin-bottom:16px">
+      <button class="round-tab${activeTab===0?' active':''}" onclick="dfTab(0)">날짜 차이</button>
+      <button class="round-tab${activeTab===1?' active':''}" onclick="dfTab(1)">날짜 계산</button>
+    </div>`;
+  }
+
+  function render() {
+    if(activeTab===0) {
+      b.innerHTML = `${tabsHTML()}
+        ${dateFieldToday('시작 날짜','df-start')}
+        ${dateFieldToday('종료 날짜','df-end')}
+        ${btn()} ${resultBox()}`;
+      window.doCalc = () => {
+        ['df-start','df-end'].forEach(fieldClear);
+        const sv=document.getElementById('df-start').value;
+        const ev=document.getElementById('df-end').value;
+        if(!sv) { fieldError('df-start','시작 날짜를 선택해주세요'); return; }
+        if(!ev) { fieldError('df-end','종료 날짜를 선택해주세요'); return; }
+        const s=new Date(sv), e=new Date(ev);
+        const diff=Math.round((e-s)/864e5);
+        const absDiff=Math.abs(diff);
+        const weeks=Math.floor(absDiff/7), days=absDiff%7;
+        const isFuture=diff>0, isPast=diff<0;
+        const color=isFuture?'var(--accent2)':isPast?'var(--accent3)':'var(--text)';
+        const label=isFuture?'일 후':isPast?'일 전':'일';
+        showResult(`<div class="result-main" style="color:${color}">${fmt(absDiff)}<span style="font-size:16px;color:${color}"> ${label}</span></div>
+          <div class="result-row"><span class="rk">주 단위</span><span class="rv">${weeks}주 ${days}일${isFuture?' 후':isPast?' 전':''}</span></div>
+          <div class="result-row"><span class="rk">개월 (근사)</span><span class="rv accent">${(absDiff/30.44).toFixed(1)}개월${isFuture?' 후':isPast?' 전':''}</span></div>`);
+      };
+    } else {
+      b.innerHTML = `${tabsHTML()}
+        ${dateFieldToday('기준일','df2-base')}
+        <div class="field"><label>며칠</label>
+          <div style="display:flex;gap:8px">
+            <input type="text" inputmode="numeric" id="df2-days" placeholder="30"
+              style="flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+            <button id="df2-dir-btn" data-dir="after" onclick="dfToggleDir()"
+              style="flex-shrink:0;padding:13px 20px;background:var(--surface3);border:1.5px solid var(--accent);border-radius:10px;color:var(--accent);font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;">후</button>
+          </div>
+        </div>
+        ${btn()} ${resultBox()}`;
+      window.dfToggleDir = () => {
+        const tog=document.getElementById('df2-dir-btn');
+        const isAfter=tog.dataset.dir==='after';
+        tog.dataset.dir=isAfter?'before':'after';
+        tog.textContent=isAfter?'전':'후';
+        tog.style.color=isAfter?'var(--accent3)':'var(--accent)';
+        tog.style.borderColor=isAfter?'var(--accent3)':'var(--accent)';
+      };
+      window.doCalc = () => {
+        fieldClear('df2-base');
+        const bv=document.getElementById('df2-base').value;
+        const dv=parseInt(document.getElementById('df2-days').value||0);
+        if(!bv) { fieldError('df2-base','기준일을 선택해주세요'); return; }
+        if(!dv) return;
+        const dir=document.getElementById('df2-dir-btn').dataset.dir;
+        const result=new Date(bv);
+        result.setDate(result.getDate()+(dir==='after'?dv:-dv));
+        const yy=result.getFullYear(), mm=result.getMonth()+1, dd=result.getDate();
+        const dow=['일','월','화','수','목','금','토'][result.getDay()];
+        const color=dir==='after'?'var(--accent2)':'var(--accent3)';
+        showResult(`<div class="result-main" style="color:${color}">${yy}년 ${mm}월 ${dd}일</div>
+          <div class="result-row"><span class="rk">요일</span><span class="rv accent">${dow}요일</span></div>
+          <div class="result-row"><span class="rk">기준일로부터</span><span class="rv">${fmt(dv)}일 ${dir==='after'?'후':'전'}</span></div>`);
+      };
+    }
+  }
+
+  window.dfTab = (t) => { activeTab=t; render(); };
+  render();
 }
 
 // ── 만 나이 ──

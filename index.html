@@ -632,7 +632,7 @@ function dateField(label, id) {
         style="position:absolute;left:0;top:0;bottom:0;width:46px;display:flex;align-items:center;justify-content:center;background:var(--surface3);border:none;border-right:1px solid var(--border);border-radius:10px 0 0 10px;cursor:pointer;font-size:18px;transition:opacity .15s"
         onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">📅</button>
       <input type="date" id="${id}"
-        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px 13px 54px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;appearance:none;-webkit-appearance:none;"
+        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px 13px 54px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;color-scheme:dark;"
         onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
     </div>
   </div>`;
@@ -1153,10 +1153,22 @@ function buildDutch(b) {
 // ── D-day ──
 function buildDday(b) {
   let savedDdays = JSON.parse(localStorage.getItem('savedDdays')||'[]');
+  let activeTab = 'date';
 
   function ddayTxt(dt) {
     const diff = Math.ceil((new Date(dt)-new Date().setHours(0,0,0,0))/864e5);
     return { diff, txt: diff===0?'D-Day!':diff>0?`D-${diff}`:`D+${-diff}` };
+  }
+
+  function addDays(n) {
+    const d = new Date();
+    d.setDate(d.getDate() + n);
+    return d.toISOString().slice(0,10);
+  }
+
+  function fmtDate(dt) {
+    const d = new Date(dt+'T00:00:00');
+    return `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일`;
   }
 
   function renderSaved() {
@@ -1169,7 +1181,7 @@ function buildDday(b) {
         return `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px">
           <div>
             <div style="font-size:16px;font-weight:700;color:${color};font-family:'Space Mono',monospace">${txt}</div>
-            <div style="font-size:12px;color:var(--text3);margin-top:2px">${d.label} · ${d.date}</div>
+            <div style="font-size:12px;color:var(--text3);margin-top:2px">${d.label} · ${fmtDate(d.date)}</div>
           </div>
           <button onclick="ddayDelete(${i})" style="background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;padding:4px 8px;line-height:1">×</button>
         </div>`;
@@ -1177,28 +1189,48 @@ function buildDday(b) {
     </div>`;
   }
 
+  const tabStyle = (active) => `padding:8px 20px;border-radius:20px;border:1.5px solid ${active?'var(--accent)':'var(--border)'};background:${active?'var(--accent)':'transparent'};color:${active?'#fff':'var(--text2)'};font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s`;
+
   function render() {
     b.innerHTML = `
-      ${dateField('목표 날짜','dday-date')}
-      <div class="field"><label>이름/메모 <span style="font-size:11px;color:var(--text3)">(선택)</span></label><input type="text" id="dday-label" placeholder="여행, 시험, 기념일..."></div>
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button style="${tabStyle(activeTab==='date')}" onclick="ddayTab('date')">날짜 선택</button>
+        <button style="${tabStyle(activeTab==='days')}" onclick="ddayTab('days')">N일 후</button>
+      </div>
+      ${activeTab==='date' ? `
+        ${dateField('목표 날짜','dday-date')}
+        <div class="field"><label>이름/메모 <span style="font-size:11px;color:var(--text3)">(선택)</span></label><input type="text" id="dday-label" placeholder="여행, 시험, 기념일..."></div>
+      ` : `
+        <div class="field"><label>며칠 후</label><input type="number" id="dday-days" inputmode="numeric" placeholder="30" min="1" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></div>
+        <div class="field"><label>이름/메모 <span style="font-size:11px;color:var(--text3)">(선택)</span></label><input type="text" id="dday-label" placeholder="여행, 시험, 기념일..."></div>
+      `}
       ${btn('계산하기')} ${resultBox()}
       <div id="dday-saved">${renderSaved()}</div>`;
   }
 
   render();
 
+  window.ddayTab = (tab) => { activeTab = tab; render(); };
+
   window.doCalc = () => {
-    fieldClear('dday-date');
-    const dt = document.getElementById('dday-date').value;
     const lb = document.getElementById('dday-label').value||'목표';
-    if(!dt) { fieldError('dday-date','날짜를 선택해주세요'); return; }
+    let dt;
+    if(activeTab==='date') {
+      fieldClear('dday-date');
+      dt = document.getElementById('dday-date').value;
+      if(!dt) { fieldError('dday-date','날짜를 선택해주세요'); return; }
+    } else {
+      const days = parseInt(document.getElementById('dday-days').value);
+      const el = document.getElementById('dday-days');
+      if(!days||days<1) { el.style.borderColor='var(--accent3)'; return; }
+      dt = addDays(days);
+    }
     const {diff,txt} = ddayTxt(dt);
     if(!savedDdays.find(d=>d.date===dt&&d.label===lb)) {
       savedDdays.unshift({label:lb, date:dt});
-      if(savedDdays.length>10) savedDdays=savedDdays.slice(0,10);
       localStorage.setItem('savedDdays', JSON.stringify(savedDdays));
     }
-    showResult(`<div class="result-main">${txt}</div><div class="result-sub">${lb} · ${dt}${diff>0?' · '+diff+'일 남음':diff<0?' · '+(-diff)+'일 지남':' · 오늘!'}</div>`);
+    showResult(`<div class="result-main">${txt}</div><div class="result-sub">${lb} · ${fmtDate(dt)}${diff>0?' · '+diff+'일 남음':diff<0?' · '+(-diff)+'일 지남':' · 오늘!'}</div>`);
     document.getElementById('dday-saved').innerHTML = renderSaved();
   };
 
@@ -1612,7 +1644,7 @@ async function buildExchange(b) {
     const histHTML = excHistory.length ? `
       <div style="margin-top:16px">
         <div style="font-size:11px;font-weight:700;color:var(--text3);letter-spacing:.08em;margin-bottom:6px">최근 계산</div>
-        ${excHistory.slice(0,5).map(h=>`
+        ${excHistory.slice(0,10).map(h=>`
           <div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border)">
             <span style="font-size:13px;color:var(--text3)">${h.fromFlag}→${h.toFlag}</span>
             <span style="font-size:13px;font-weight:600;color:var(--text);font-family:'Space Mono',monospace">${h.label}</span>
@@ -1687,7 +1719,7 @@ async function buildExchange(b) {
 
     excHistory.unshift({ fromFlag:from.flag, toFlag:to.flag, label:`${fmtVal(amount,fromCode)} → ${fmtVal(result,toCode)}` });
     excHistory = excHistory.filter((v,i,a)=>i===a.findIndex(x=>x.fromFlag===v.fromFlag&&x.toFlag===v.toFlag&&x.label===v.label));
-    if(excHistory.length>5) excHistory=excHistory.slice(0,5);
+    if(excHistory.length>10) excHistory=excHistory.slice(0,10);
     localStorage.setItem('excHistory', JSON.stringify(excHistory));
 
     renderExc();

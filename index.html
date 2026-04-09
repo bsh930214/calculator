@@ -626,6 +626,14 @@ function selectField(label, id, options) {
 }
 // 날짜 필드 — 왼쪽 캘린더 버튼, 오른쪽 네이티브 아이콘 숨김
 function dateField(label, id) {
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  if(isIOS) {
+    return `<div class="field"><label>${label}</label>
+      <input type="date" id="${id}"
+        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;color-scheme:dark;box-sizing:border-box;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+    </div>`;
+  }
   return `<div class="field"><label>${label}</label>
     <div style="position:relative">
       <button onclick="document.getElementById('${id}').showPicker?document.getElementById('${id}').showPicker():document.getElementById('${id}').click()"

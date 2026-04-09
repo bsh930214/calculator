@@ -1266,8 +1266,8 @@ function buildDaysfrom(b) {
 
   function tabsHTML() {
     return `<div style="display:flex;gap:8px;margin-bottom:16px">
-      <button class="round-tab${activeTab===0?' active':''}" onclick="dfTab(0)">날짜 차이</button>
-      <button class="round-tab${activeTab===1?' active':''}" onclick="dfTab(1)">날짜 계산</button>
+      <button class="round-tab${activeTab===0?' active':''}" onclick="dfTab(0)">날짜 선택</button>
+      <button class="round-tab${activeTab===1?' active':''}" onclick="dfTab(1)">일수 입력</button>
     </div>`;
   }
 
@@ -1777,16 +1777,17 @@ function buildInvest(b) {
     } else {
       b.innerHTML = `${tabsHTML()}
         ${manField('시작 원금','inv2-principal','1,000')}
-        <div class="field"><label>적립 금액 <span style="font-size:11px;color:var(--text3)">(선택, 만원)</span></label>
+        <div class="field"><label>적립 금액 <span style="font-size:11px;color:var(--text3)">(선택)</span></label>
           <div style="position:relative">
-            <input type="text" inputmode="numeric" id="inv2-contrib" placeholder="0"
-              oninput="fmtInput(this)"
-              style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 70px 13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;"
-              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
             <button id="inv2-contrib-toggle" type="button" data-mode="month"
               onclick="toggleInvContrib()"
-              style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--text2);cursor:pointer;font-family:inherit;transition:all .2s;">월</button>
+              style="position:absolute;left:0;top:0;bottom:0;width:46px;display:flex;align-items:center;justify-content:center;background:var(--surface3);border:none;border-right:1px solid var(--border);border-radius:10px 0 0 10px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;transition:all .2s;">월</button>
+            <input type="text" inputmode="numeric" id="inv2-contrib" placeholder="0"
+              oninput="fmtInput(this);updateKo('inv2-contrib')"
+              style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px 13px 54px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
           </div>
+          <div id="inv2-contrib-ko" style="font-size:12px;color:var(--accent2);margin-top:5px;min-height:16px;text-align:right;font-weight:600"></div>
         </div>
         ${numField('목표 연평균 수익률 (%)','inv2-cagr','8','',true)}
         ${numField('투자 기간 (년)','inv2-years','10','',true)}

@@ -365,6 +365,10 @@ function goHome() {
   document.getElementById('list').classList.add('hidden');
   document.getElementById('calc').classList.add('hidden');
   renderHome();
+  // 네이티브 앱에 홈 복귀 이벤트 전송
+  if (window.ReactNativeWebView) {
+    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'GO_HOME' }));
+  }
 }
 function openList() {
   fromScreen = 'home';
@@ -387,6 +391,10 @@ function openCalc(id) {
   const c = CALCS.find(x=>x.id===id);
   document.getElementById('calc-title').textContent = c.icon+' '+c.name;
   document.getElementById('calc-back').onclick = () => {
+    // 네이티브 앱에 뒤로가기 이벤트 전송
+    if (window.ReactNativeWebView) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'GO_BACK' }));
+    }
     if(fromScreen==='list') {
       document.getElementById('home').classList.add('hidden');
       document.getElementById('list').classList.remove('hidden');
@@ -672,6 +680,10 @@ function showResult(html) {
   const box = document.getElementById('result-box');
   box.innerHTML = html; box.classList.add('show');
   box.scrollIntoView({behavior:'smooth',block:'nearest'});
+  // 네이티브 앱에 결과 확인 이벤트 전송
+  if (window.ReactNativeWebView) {
+    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'RESULT_VIEWED' }));
+  }
 }
 
 // ── 바로 계산 (기본 계산기) ──

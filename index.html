@@ -565,14 +565,14 @@ function togglePeriod(id) {
 function periodField(label, id, phM, phY, req=false) {
   const reqMark = req ? '<span class="req">*</span>' : '';
   return `<div class="field"><label>${label}${reqMark}</label>
-    <div style="position:relative">
+    <div id="${id}-wrap" style="display:flex;align-items:stretch;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .2s;">
       <button id="${id}-toggle" type="button" data-mode="month" data-placeholder_m="${phM}" data-placeholder_y="${phY}"
         onclick="togglePeriod('${id}')"
-        style="position:absolute;left:0;top:0;bottom:0;width:46px;display:flex;align-items:center;justify-content:center;background:var(--surface3);border:none;border-right:1px solid var(--border);border-radius:10px 0 0 10px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;transition:color .2s;">개월</button>
+        style="flex-shrink:0;width:46px;display:flex;align-items:center;justify-content:center;background:var(--surface3);border:none;border-right:1px solid var(--border);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;transition:color .2s;">개월</button>
       <input type="text" inputmode="numeric" id="${id}" placeholder="${phM}"
         oninput="fmtInput(this)"
-        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px 13px 54px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;"
-        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        style="flex:1;background:transparent;border:none;padding:13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;min-width:0;"
+        onfocus="document.getElementById('${id}-wrap').style.borderColor='var(--accent)'" onblur="document.getElementById('${id}-wrap').style.borderColor='var(--border)'">
     </div>
   </div>`;
 }
@@ -630,38 +630,40 @@ function updateKo(id) {
   if(el) el.textContent = v ? toKorean(v) : '';
 }
 function selectField(label, id, options) {
-  return `<div class="field"><label>${label}</label><select id="${id}">${options.map(o=>`<option value="${o.v}">${o.l}</option>`).join('')}</select></div>`;
+  const s = `width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 36px 13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%276%27 fill=%27none%27%3E%3Cpath d=%27M1 1l4 4 4-4%27 stroke=%27%239499aa%27 stroke-width=%271.5%27 stroke-linecap=%27round%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 12px center;`;
+  return `<div class="field"><label>${label}</label><select id="${id}" style="${s}">${options.map(o=>`<option value="${o.v}">${o.l}</option>`).join('')}</select></div>`;
 }
 // 날짜 필드 — 왼쪽 캘린더 버튼, 오른쪽 네이티브 아이콘 숨김
 function dateField(label, id, req=false) {
   return `<div class="field"><label>${label}${req?'<span class="req">*</span>':''}</label>
-    <div style="position:relative">
+    <div id="${id}-wrap" style="display:flex;align-items:stretch;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .2s;">
       <button onclick="document.getElementById('${id}').showPicker?document.getElementById('${id}').showPicker():document.getElementById('${id}').click()"
-        style="position:absolute;left:0;top:0;bottom:0;width:46px;display:flex;align-items:center;justify-content:center;background:var(--surface3);border:none;border-right:1px solid var(--border);border-radius:10px 0 0 10px;cursor:pointer;font-size:18px;transition:opacity .15s"
+        style="flex-shrink:0;width:46px;display:flex;align-items:center;justify-content:center;background:var(--surface3);border:none;border-right:1px solid var(--border);cursor:pointer;font-size:18px;transition:opacity .15s"
         onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">📅</button>
       <input type="date" id="${id}"
-        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px 13px 54px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;color-scheme:dark;"
-        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+        style="flex:1;background:transparent;border:none;padding:13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;color-scheme:dark;min-width:0;"
+        onfocus="document.getElementById('${id}-wrap').style.borderColor='var(--accent)'" onblur="document.getElementById('${id}-wrap').style.borderColor='var(--border)'">
     </div>
   </div>`;
 }
 // 필드 에러 표시 / 클리어
 function fieldError(id, msg) {
-  const el = document.getElementById(id);
-  if(!el) return;
-  el.style.borderColor = 'var(--accent3)';
+  const wrap = document.getElementById(id+'-wrap') || document.getElementById(id);
+  if(!wrap) return;
+  wrap.style.borderColor = 'var(--accent3)';
+  const field = document.getElementById(id)?.closest('.field') || wrap.closest('.field');
   let hint = document.getElementById(id+'-err');
   if(!hint) {
     hint = document.createElement('div');
     hint.id = id+'-err';
     hint.style.cssText = 'font-size:11px;color:var(--accent3);margin-top:4px;';
-    el.closest('.field')?.appendChild(hint) || el.parentNode.appendChild(hint);
+    field?.appendChild(hint) || wrap.parentNode.appendChild(hint);
   }
   if(msg) hint.textContent = msg;
 }
 function fieldClear(id) {
-  const el = document.getElementById(id);
-  if(el) el.style.borderColor = 'var(--border)';
+  const wrap = document.getElementById(id+'-wrap') || document.getElementById(id);
+  if(wrap) wrap.style.borderColor = 'var(--border)';
   const hint = document.getElementById(id+'-err');
   if(hint) hint.remove();
 }
@@ -1257,16 +1259,16 @@ function buildDaysfrom(b) {
 
   function dateFieldToday(label, id, req=false) {
     return `<div class="field"><label>${label}${req?'<span class="req">*</span>':''}</label>
-      <div style="position:relative">
+      <div id="${id}-wrap" style="display:flex;align-items:stretch;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .2s;">
         <button onclick="document.getElementById('${id}').showPicker?document.getElementById('${id}').showPicker():document.getElementById('${id}').click()"
-          style="position:absolute;left:0;top:0;bottom:0;width:46px;display:flex;align-items:center;justify-content:center;background:var(--surface3);border:none;border-right:1px solid var(--border);border-radius:10px 0 0 10px;cursor:pointer;font-size:18px;transition:opacity .15s"
+          style="flex-shrink:0;width:46px;display:flex;align-items:center;justify-content:center;background:var(--surface3);border:none;border-right:1px solid var(--border);cursor:pointer;font-size:18px;transition:opacity .15s"
           onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">📅</button>
         <input type="date" id="${id}"
-          style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 58px 13px 54px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;appearance:none;-webkit-appearance:none;"
-          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
+          style="flex:1;background:transparent;border:none;padding:13px 8px;color:var(--text);font-size:15px;font-family:inherit;outline:none;appearance:none;-webkit-appearance:none;min-width:0;"
+          onfocus="document.getElementById('${id}-wrap').style.borderColor='var(--accent)'" onblur="document.getElementById('${id}-wrap').style.borderColor='var(--border)'">
         <button onclick="document.getElementById('${id}').value=dfTodayStr()"
-          style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .2s"
-          onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">오늘</button>
+          style="flex-shrink:0;padding:0 12px;background:var(--surface3);border:none;border-left:1px solid var(--border);font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .2s"
+          onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text2)'">오늘</button>
       </div>
     </div>`;
   }

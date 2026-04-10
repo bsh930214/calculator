@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "실생활 계산기",
+    "name": "시그마",
     "slug": "rn-cal",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "rncal",
@@ -10,7 +10,51 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.asistobe.rncal"
+      "bundleIdentifier": "com.asistobe.rncal",
+      "infoPlist": {
+        "NSUserTrackingUsageDescription": "맞춤 광고를 제공하기 위해 사용됩니다. 허용하지 않아도 앱 사용에 지장이 없습니다.",
+        "SKAdNetworkItems": [
+          { "SKAdNetworkIdentifier": "cstr6suwn9.skadnetwork" },
+          { "SKAdNetworkIdentifier": "4fzdc2evr5.skadnetwork" },
+          { "SKAdNetworkIdentifier": "2fnua5tdw4.skadnetwork" },
+          { "SKAdNetworkIdentifier": "ydx93a7ass.skadnetwork" },
+          { "SKAdNetworkIdentifier": "p78ahlhsy2.skadnetwork" },
+          { "SKAdNetworkIdentifier": "v72qych5uu.skadnetwork" },
+          { "SKAdNetworkIdentifier": "ludvb6z3bs.skadnetwork" },
+          { "SKAdNetworkIdentifier": "cp8zw746q7.skadnetwork" },
+          { "SKAdNetworkIdentifier": "c6k4g5qg8m.skadnetwork" },
+          { "SKAdNetworkIdentifier": "s39g8k73mm.skadnetwork" },
+          { "SKAdNetworkIdentifier": "3qy4746246.skadnetwork" },
+          { "SKAdNetworkIdentifier": "3sh42y64q3.skadnetwork" },
+          { "SKAdNetworkIdentifier": "f38h382jlk.skadnetwork" },
+          { "SKAdNetworkIdentifier": "hs6bdukanm.skadnetwork" },
+          { "SKAdNetworkIdentifier": "v4nxqhlyqp.skadnetwork" },
+          { "SKAdNetworkIdentifier": "wzmmz9fp6w.skadnetwork" },
+          { "SKAdNetworkIdentifier": "su67r6k2v3.skadnetwork" },
+          { "SKAdNetworkIdentifier": "yclnxrl5pm.skadnetwork" },
+          { "SKAdNetworkIdentifier": "4468km3ulz.skadnetwork" },
+          { "SKAdNetworkIdentifier": "t38b2kh725.skadnetwork" },
+          { "SKAdNetworkIdentifier": "7ug5zh24hu.skadnetwork" },
+          { "SKAdNetworkIdentifier": "9rd848q77k.skadnetwork" },
+          { "SKAdNetworkIdentifier": "n6fk4nfna4.skadnetwork" },
+          { "SKAdNetworkIdentifier": "kbd757ywx3.skadnetwork" },
+          { "SKAdNetworkIdentifier": "9t245vhmpl.skadnetwork" },
+          { "SKAdNetworkIdentifier": "2u9pt9hc89.skadnetwork" },
+          { "SKAdNetworkIdentifier": "8s468mfl3y.skadnetwork" },
+          { "SKAdNetworkIdentifier": "av6w8kgt66.skadnetwork" },
+          { "SKAdNetworkIdentifier": "klf5c3l5u5.skadnetwork" },
+          { "SKAdNetworkIdentifier": "ppxm28t8ap.skadnetwork" },
+          { "SKAdNetworkIdentifier": "424m5254lk.skadnetwork" },
+          { "SKAdNetworkIdentifier": "uw77j35x4d.skadnetwork" },
+          { "SKAdNetworkIdentifier": "578prtvx9j.skadnetwork" },
+          { "SKAdNetworkIdentifier": "4dzt52r2t5.skadnetwork" },
+          { "SKAdNetworkIdentifier": "e5fvkxwrpn.skadnetwork" },
+          { "SKAdNetworkIdentifier": "8c4e2ghe7u.skadnetwork" },
+          { "SKAdNetworkIdentifier": "zq492l623r.skadnetwork" },
+          { "SKAdNetworkIdentifier": "3rd42ekr43.skadnetwork" },
+          { "SKAdNetworkIdentifier": "3qcr597p9d.skadnetwork" }
+        ]
+      }
     },
     "android": {
       "package": "com.asistobe.rncal",
@@ -39,6 +83,14 @@
           "dark": {
             "backgroundColor": "#000000"
           }
+        }
+      ],
+      "expo-tracking-transparency",
+      [
+        "react-native-google-mobile-ads",
+        {
+          "iosAppId": "ca-app-pub-5331327685576935~7819127956",
+          "androidAppId": "ca-app-pub-5331327685576935~7925134818"
         }
       ]
     ],

@@ -131,6 +131,7 @@
   .field input:focus, .field select:focus { border-color:var(--accent); }
   .field input::placeholder { color:var(--text3); }
   input::placeholder { color:var(--text3); }
+  label .req { color:var(--accent3); margin-left:3px; font-size:11px; font-weight:700; }
   /* hide number spinners */
   .field input[type=number]::-webkit-inner-spin-button,
   .field input[type=number]::-webkit-outer-spin-button { -webkit-appearance:none; margin:0; }
@@ -501,8 +502,9 @@ function field(label, id, type='number', placeholder='', extra='') {
   return `<div class="field"><label>${label}</label><input type="${type}" id="${id}" placeholder="${placeholder}" ${extra}></div>`;
 }
 // 콤마 포맷 숫자 입력 (text 타입으로 콤마 실시간 표시)
-function numField(label, id, placeholder='', suffix='', decimal=false) {
-  return `<div class="field"><label>${label}</label>
+function numField(label, id, placeholder='', suffix='', decimal=false, req=false) {
+  const reqMark = req ? '<span class="req">*</span>' : '';
+  return `<div class="field"><label>${label}${reqMark}</label>
     <div style="position:relative">
       <input type="text" inputmode="${decimal?'decimal':'numeric'}" id="${id}" placeholder="${placeholder}"
         oninput="fmtInput(this)"
@@ -513,8 +515,9 @@ function numField(label, id, placeholder='', suffix='', decimal=false) {
   </div>`;
 }
 // 만원 단위 입력 필드
-function manField(label, id, placeholder='') {
-  return `<div class="field"><label>${label}</label>
+function manField(label, id, placeholder='', req=false) {
+  const reqMark = req ? '<span class="req">*</span>' : '';
+  return `<div class="field"><label>${label}${reqMark}</label>
     <div style="position:relative">
       <input type="text" inputmode="numeric" id="${id}" placeholder="${placeholder}"
         oninput="fmtInput(this)"
@@ -559,16 +562,17 @@ function togglePeriod(id) {
   input.placeholder = btn.dataset.placeholder_y && isMonth ? btn.dataset.placeholder_y : btn.dataset.placeholder_m;
 }
 // 기간 입력 필드 (개월/년 토글 포함)
-function periodField(label, id, phM, phY) {
-  return `<div class="field"><label>${label}</label>
+function periodField(label, id, phM, phY, req=false) {
+  const reqMark = req ? '<span class="req">*</span>' : '';
+  return `<div class="field"><label>${label}${reqMark}</label>
     <div style="position:relative">
-      <input type="text" inputmode="numeric" id="${id}" placeholder="${phM}"
-        oninput="fmtInput(this)"
-        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 70px 13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;"
-        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
       <button id="${id}-toggle" type="button" data-mode="month" data-placeholder_m="${phM}" data-placeholder_y="${phY}"
         onclick="togglePeriod('${id}')"
-        style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--text2);cursor:pointer;transition:all .2s;font-family:inherit;">개월</button>
+        style="position:absolute;left:0;top:0;bottom:0;width:46px;display:flex;align-items:center;justify-content:center;background:var(--surface3);border:none;border-right:1px solid var(--border);border-radius:10px 0 0 10px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;transition:color .2s;">개월</button>
+      <input type="text" inputmode="numeric" id="${id}" placeholder="${phM}"
+        oninput="fmtInput(this)"
+        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px 13px 54px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
     </div>
   </div>`;
 }
@@ -606,9 +610,10 @@ function toKorean(manwon) {
 }
 
 // 만원 필드 — 입력 아래에 한글 금액 표시
-function manField(label, id, placeholder='') {
+function manField(label, id, placeholder='', req=false) {
+  const reqMark = req ? '<span class="req">*</span>' : '';
   return `<div class="field">
-    <label>${label}</label>
+    <label>${label}${reqMark}</label>
     <div style="position:relative">
       <input type="text" inputmode="numeric" id="${id}" placeholder="${placeholder}"
         oninput="fmtInput(this);updateKo('${id}')"
@@ -628,8 +633,8 @@ function selectField(label, id, options) {
   return `<div class="field"><label>${label}</label><select id="${id}">${options.map(o=>`<option value="${o.v}">${o.l}</option>`).join('')}</select></div>`;
 }
 // 날짜 필드 — 왼쪽 캘린더 버튼, 오른쪽 네이티브 아이콘 숨김
-function dateField(label, id) {
-  return `<div class="field"><label>${label}</label>
+function dateField(label, id, req=false) {
+  return `<div class="field"><label>${label}${req?'<span class="req">*</span>':''}</label>
     <div style="position:relative">
       <button onclick="document.getElementById('${id}').showPicker?document.getElementById('${id}').showPicker():document.getElementById('${id}').click()"
         style="position:absolute;left:0;top:0;bottom:0;width:46px;display:flex;align-items:center;justify-content:center;background:var(--surface3);border:none;border-right:1px solid var(--border);border-radius:10px 0 0 10px;cursor:pointer;font-size:18px;transition:opacity .15s"
@@ -957,11 +962,11 @@ function buildDutch(b) {
         <!-- 가게 이름 + 금액 -->
         <div class="field-row" style="margin-bottom:12px">
           <div class="field" style="margin-bottom:0">
-            <label>가게 이름 (선택)</label>
+            <label>가게 이름</label>
             <input type="text" id="dutch-place" placeholder="삼겹살집, 호프집..." oninput="dutchSaveField()">
           </div>
           <div class="field" style="margin-bottom:0">
-            <label>금액 (원)</label>
+            <label>금액 (원)<span class="req">*</span></label>
             <input type="text" inputmode="numeric" id="dutch-amount" placeholder="50,000"
               oninput="fmtInput(this);dutchSaveField()"
               style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s"
@@ -1008,7 +1013,7 @@ function buildDutch(b) {
       const isIn = curSet.has(p.id);
       return `
         <div class="person-chip" style="${isIn?'':'opacity:.45;'}">
-          <input type="text" placeholder="이름 (선택)" value="${p.name}"
+          <input type="text" placeholder="이름" value="${p.name}"
             oninput="dutchSetName(${p.id},this.value)">
           <button onclick="dutchToggleJoin(${p.id})"
             style="padding:0 10px;align-self:stretch;display:flex;align-items:center;
@@ -1088,7 +1093,7 @@ function buildDutch(b) {
       if(!ids.length) return;
       ids.forEach(id=>{ totals[id]=(totals[id]||0)+amt/ids.length; });
     });
-    if(!hasAmount) return;
+    if(!hasAmount) { fieldError('dutch-amount','금액을 입력해주세요'); return; }
     showResult=true;
     render();
   };
@@ -1201,11 +1206,11 @@ function buildDday(b) {
         <button style="${tabStyle(activeTab==='days')}" onclick="ddayTab('days')">N일 후</button>
       </div>
       ${activeTab==='date' ? `
-        ${dateField('목표 날짜','dday-date')}
-        <div class="field"><label>이름/메모 <span style="font-size:11px;color:var(--text3)">(선택)</span></label><input type="text" id="dday-label" placeholder="여행, 시험, 기념일..."></div>
+        ${dateField('목표 날짜','dday-date',true)}
+        <div class="field"><label>이름/메모</label><input type="text" id="dday-label" placeholder="여행, 시험, 기념일..."></div>
       ` : `
-        <div class="field"><label>며칠 후</label><input type="number" id="dday-days" inputmode="numeric" placeholder="30" min="1" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></div>
-        <div class="field"><label>이름/메모 <span style="font-size:11px;color:var(--text3)">(선택)</span></label><input type="text" id="dday-label" placeholder="여행, 시험, 기념일..."></div>
+        <div class="field"><label>며칠 후<span class="req">*</span></label><input type="number" id="dday-days" inputmode="numeric" placeholder="30" min="1" style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s" onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'"></div>
+        <div class="field"><label>이름/메모</label><input type="text" id="dday-label" placeholder="여행, 시험, 기념일..."></div>
       `}
       ${btn('계산하기')} ${resultBox()}
       <div id="dday-saved">${renderSaved()}</div>`;
@@ -1223,9 +1228,9 @@ function buildDday(b) {
       dt = document.getElementById('dday-date').value;
       if(!dt) { fieldError('dday-date','날짜를 선택해주세요'); return; }
     } else {
+      fieldClear('dday-days');
       const days = parseInt(document.getElementById('dday-days').value);
-      const el = document.getElementById('dday-days');
-      if(!days||days<1) { el.style.borderColor='var(--accent3)'; return; }
+      if(!days||days<1) { fieldError('dday-days','며칠 후를 입력해주세요'); return; }
       dt = addDays(days);
     }
     const {diff,txt} = ddayTxt(dt);
@@ -1250,8 +1255,8 @@ function buildDaysfrom(b) {
 
   window.dfTodayStr = () => new Date().toISOString().split('T')[0];
 
-  function dateFieldToday(label, id) {
-    return `<div class="field"><label>${label}</label>
+  function dateFieldToday(label, id, req=false) {
+    return `<div class="field"><label>${label}${req?'<span class="req">*</span>':''}</label>
       <div style="position:relative">
         <button onclick="document.getElementById('${id}').showPicker?document.getElementById('${id}').showPicker():document.getElementById('${id}').click()"
           style="position:absolute;left:0;top:0;bottom:0;width:46px;display:flex;align-items:center;justify-content:center;background:var(--surface3);border:none;border-right:1px solid var(--border);border-radius:10px 0 0 10px;cursor:pointer;font-size:18px;transition:opacity .15s"
@@ -1276,8 +1281,8 @@ function buildDaysfrom(b) {
   function render() {
     if(activeTab===0) {
       b.innerHTML = `${tabsHTML()}
-        ${dateFieldToday('시작 날짜','df-start')}
-        ${dateFieldToday('종료 날짜','df-end')}
+        ${dateFieldToday('시작 날짜','df-start',true)}
+        ${dateFieldToday('종료 날짜','df-end',true)}
         ${btn()} ${resultBox()}`;
       window.doCalc = () => {
         ['df-start','df-end'].forEach(fieldClear);
@@ -1298,8 +1303,8 @@ function buildDaysfrom(b) {
       };
     } else {
       b.innerHTML = `${tabsHTML()}
-        ${dateFieldToday('기준일','df2-base')}
-        <div class="field"><label>며칠</label>
+        ${dateFieldToday('기준일','df2-base',true)}
+        <div class="field"><label>며칠<span class="req">*</span></label>
           <div style="display:flex;gap:8px">
             <input type="text" inputmode="numeric" id="df2-days" placeholder="30"
               style="flex:1;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;"
@@ -1322,7 +1327,8 @@ function buildDaysfrom(b) {
         const bv=document.getElementById('df2-base').value;
         const dv=parseInt(document.getElementById('df2-days').value||0);
         if(!bv) { fieldError('df2-base','기준일을 선택해주세요'); return; }
-        if(!dv) return;
+        fieldClear('df2-days');
+        if(!dv) { fieldError('df2-days','며칠을 입력해주세요'); return; }
         const dir=document.getElementById('df2-dir-btn').dataset.dir;
         const result=new Date(bv);
         result.setDate(result.getDate()+(dir==='after'?dv:-dv));
@@ -1342,7 +1348,7 @@ function buildDaysfrom(b) {
 
 // ── 만 나이 ──
 function buildAge(b) {
-  b.innerHTML = `${dateField('생년월일','birth-date')} ${btn()} ${resultBox()}`;
+  b.innerHTML = `${dateField('생년월일','birth-date',true)} ${btn()} ${resultBox()}`;
   window.doCalc = () => {
     fieldClear('birth-date');
     const bv = document.getElementById('birth-date').value;
@@ -1374,7 +1380,7 @@ function buildDiscount(b) {
       </div>
     </div>
     <div id="disc-fields">
-      ${numField('정가 (원)','disc-original','100,000')}
+      ${numField('정가 (원)','disc-original','100,000','',false,true)}
       ${numField('할인율 (%)','disc-rate','20','',true)}
     </div>
     ${btn()} ${resultBox()}`;
@@ -1383,7 +1389,9 @@ function buildDiscount(b) {
     if(mode==='normal') {
       const orig=getNum('disc-original');
       const rate=getNum('disc-rate');
-      if(!orig||rate<0||rate>100) return;
+      fieldClear('disc-original'); fieldClear('disc-rate');
+      if(!orig) { fieldError('disc-original','정가를 입력해주세요'); return; }
+      if(rate<0||rate>100) { fieldError('disc-rate','0~100 사이 값을 입력해주세요'); return; }
       const discounted = orig*(1-rate/100);
       const saved = orig-discounted;
       showResult(`<div class="result-main">${fmtMoney(discounted)}</div>
@@ -1392,7 +1400,9 @@ function buildDiscount(b) {
     } else {
       const discounted=getNum('disc-original');
       const rate=getNum('disc-rate');
-      if(!discounted||rate<0||rate>=100) return;
+      fieldClear('disc-original'); fieldClear('disc-rate');
+      if(!discounted) { fieldError('disc-original','할인가를 입력해주세요'); return; }
+      if(rate<0||rate>=100) { fieldError('disc-rate','0~99 사이 값을 입력해주세요'); return; }
       const orig = discounted/(1-rate/100);
       showResult(`<div class="result-main">${fmtMoney(orig)}</div>
       <div class="result-row"><span class="rk">할인가</span><span class="rv">${fmtMoney(discounted)}</span></div>
@@ -1402,25 +1412,28 @@ function buildDiscount(b) {
   window.discModeChange = () => {
     const mode = document.querySelector('input[name=disc-mode]:checked').value;
     document.getElementById('disc-fields').innerHTML = mode==='normal'
-      ? `${numField('정가 (원)','disc-original','100,000')}${numField('할인율 (%)','disc-rate','20','',true)}`
-      : `${numField('할인가 (원)','disc-original','80,000')}${numField('할인율 (%)','disc-rate','20','',true)}`;
+      ? `${numField('정가 (원)','disc-original','100,000','',false,true)}${numField('할인율 (%)','disc-rate','20','',true)}`
+      : `${numField('할인가 (원)','disc-original','80,000','',false,true)}${numField('할인율 (%)','disc-rate','20','',true)}`;
   };
 }
 
 // ── 적금 이자 ──
 function buildSavings(b) {
   b.innerHTML = `
-    ${manField('월 납입액','sav-monthly','30')}
-    ${numField('연 이자율 (%)','sav-rate','4.5','',true)}
-    ${periodField('기간','sav-months','12','1')}
+    ${manField('월 납입액','sav-monthly','30',true)}
+    ${numField('연 이자율 (%)','sav-rate','4.5','',true,true)}
+    ${periodField('기간','sav-months','12','1',true)}
     ${selectField('이자 방식','sav-type',[{v:'simple',l:'단리'},{v:'compound',l:'복리'}])}
     ${btn()} ${resultBox()}`;
   window.doCalc = () => {
+    ['sav-monthly','sav-rate','sav-months'].forEach(fieldClear);
     const m=getMan('sav-monthly');
     const r=getNum('sav-rate')/100/12;
     const n=getMonths('sav-months');
     const type=document.getElementById('sav-type').value;
-    if(!m||!r||!n) return;
+    if(!m) { fieldError('sav-monthly','월 납입액을 입력해주세요'); return; }
+    if(!r) { fieldError('sav-rate','이자율을 입력해주세요'); return; }
+    if(!n) { fieldError('sav-months','기간을 입력해주세요'); return; }
     const principal=m*n;
     let maturity;
     if(type==='compound') maturity=m*(Math.pow(1+r,n)-1)/r*(1+r);
@@ -1438,9 +1451,9 @@ function buildSavings(b) {
 // ── 대출 이자 ──
 function buildLoan(b) {
   b.innerHTML = `
-    ${manField('대출 원금','ln-principal','10,000')}
-    ${numField('연 이자율 (%)','ln-rate','4.5','',true)}
-    ${periodField('대출 기간','ln-months','360','30')}
+    ${manField('대출 원금','ln-principal','10,000',true)}
+    ${numField('연 이자율 (%)','ln-rate','4.5','',true,true)}
+    ${periodField('대출 기간','ln-months','360','30',true)}
     ${selectField('상환 방식','ln-type',[{v:'equal',l:'원리금균등'},{v:'principal',l:'원금균등'}])}
     ${btn()} ${resultBox()}`;
   window.doCalc = () => {
@@ -1494,8 +1507,8 @@ function buildSalary(b) {
   function renderSalary() {
     const mode = document.querySelector('input[name=sal-mode]:checked')?.value || 'annual';
     const inputLabel = mode==='annual'
-      ? `<label>연봉 (세전) <span style="color:var(--accent3);font-size:11px;font-weight:600">세전</span></label>`
-      : `<label>월급 (세후) <span style="color:var(--accent2);font-size:11px;font-weight:600">세후</span></label>`;
+      ? `<label>연봉 (세전)<span class="req">*</span> <span style="color:var(--accent3);font-size:11px;font-weight:600">세전</span></label>`
+      : `<label>월급 (세후)<span class="req">*</span> <span style="color:var(--accent2);font-size:11px;font-weight:600">세후</span></label>`;
     const placeholder = mode==='annual' ? '4,000' : '300';
 
     b.innerHTML = `
@@ -1529,8 +1542,9 @@ function buildSalary(b) {
 
     if(mode==='annual') {
       // 연봉 입력 → 세후 월급 계산
+      fieldClear('sal-amount');
       const annual = getMan('sal-amount');
-      if(!annual) return;
+      if(!annual) { fieldError('sal-amount','연봉을 입력해주세요'); return; }
       const gross = annual / 12;
       const {np,hp,emp,ltp,incomeTax,localTax,totalDeduct} = calcDeductions(gross, dep);
       const net = gross - totalDeduct;
@@ -1546,8 +1560,9 @@ function buildSalary(b) {
         <div class="result-row"><span class="rk">소득세+지방세</span><span class="rv">${fmtMoney(Math.round(incomeTax+localTax))}</span></div>`);
     } else {
       // 세후 월급 입력 → 세전 연봉 역산 (이분탐색)
+      fieldClear('sal-amount');
       const netTarget = getMan('sal-amount');
-      if(!netTarget) return;
+      if(!netTarget) { fieldError('sal-amount','월급을 입력해주세요'); return; }
       let lo=netTarget, hi=netTarget*3, grossMonthly=netTarget;
       for(let i=0;i<60;i++) {
         const mid=(lo+hi)/2;
@@ -1577,13 +1592,14 @@ function buildSalary(b) {
 // ── 연봉 환산 ──
 function buildAnnual(b) {
   b.innerHTML = `
-    ${manField('연봉','ann-annual','4,000')}
-    ${numField('주 근무시간 (시간)','ann-hours','40')}
+    ${manField('연봉','ann-annual','4,000',true)}
+    ${numField('주 근무시간 (시간)','ann-hours','40','',false,false)}
     ${btn()} ${resultBox()}`;
   window.doCalc = () => {
+    fieldClear('ann-annual');
     const annual=getMan('ann-annual');
     const weeklyHours=getNum('ann-hours')||40;
-    if(!annual) return;
+    if(!annual) { fieldError('ann-annual','연봉을 입력해주세요'); return; }
     const monthly=annual/12;
     const weekly=annual/52;
     const daily=annual/260;
@@ -1665,7 +1681,7 @@ async function buildExchange(b) {
     b.innerHTML = `
       <!-- 금액 입력 -->
       <div class="field" style="margin-bottom:10px">
-        <label>금액</label>
+        <label>금액<span class="req">*</span></label>
         <input type="text" inputmode="decimal" id="exc-amount" placeholder="100,000"
           oninput="fmtInput(this)"
           style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px;color:var(--text);font-size:18px;font-weight:700;font-family:'Space Mono',monospace;outline:none;transition:border-color .2s"
@@ -1706,8 +1722,9 @@ async function buildExchange(b) {
   window.excSwap       = () => { [fromCode,toCode]=[toCode,fromCode]; lastResult=null; renderExc(); };
 
   window.excCalc = () => {
+    fieldClear('exc-amount');
     const amount = getNum('exc-amount');
-    if(!amount) return;
+    if(!amount) { fieldError('exc-amount','금액을 입력해주세요'); return; }
     const from = byCode[fromCode];
     const to   = byCode[toCode];
     const rate = getRate(fromCode, toCode);
@@ -1762,13 +1779,15 @@ function buildInvest(b) {
   function render() {
     if(activeTab===0) {
       b.innerHTML = `${tabsHTML()}
-        ${manField('투자 원금','inv-principal','1,000')}
-        ${manField('현재 가치','inv-current','1,350')}
-        ${numField('투자 기간 (년)','inv-years','3','',true)}
+        ${manField('투자 원금','inv-principal','1,000',true)}
+        ${manField('현재 가치','inv-current','1,350',true)}
+        ${numField('투자 기간 (년)','inv-years','3','',true,false)}
         ${btn()} ${resultBox()}`;
       window.doCalc = () => {
+        ['inv-principal','inv-current','inv-years'].forEach(fieldClear);
         const P=getMan('inv-principal'), C=getMan('inv-current'), Y=getNum('inv-years');
-        if(!P||!C) return;
+        if(!P) { fieldError('inv-principal','투자 원금을 입력해주세요'); return; }
+        if(!C) { fieldError('inv-current','현재 가치를 입력해주세요'); return; }
         const roi=(C-P)/P*100;
         const cagr=Y>0?(Math.pow(C/P,1/Y)-1)*100:null;
         showResult(`<div class="result-main">${roi>0?'+':''}${roi.toFixed(2)}<span style="font-size:18px">%</span></div>
@@ -1778,8 +1797,8 @@ function buildInvest(b) {
       };
     } else {
       b.innerHTML = `${tabsHTML()}
-        ${manField('시작 원금','inv2-principal','1,000')}
-        <div class="field"><label>적립 금액 <span style="font-size:11px;color:var(--text3)">(선택)</span></label>
+        ${manField('시작 원금','inv2-principal','1,000',true)}
+        <div class="field"><label>적립 금액</label>
           <div id="inv2-contrib-wrap" style="display:flex;align-items:stretch;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;transition:border-color .2s;overflow:hidden;">
             <button id="inv2-contrib-toggle" type="button" data-mode="month"
               onclick="toggleInvContrib()"
@@ -1791,8 +1810,8 @@ function buildInvest(b) {
           </div>
           <div id="inv2-contrib-ko" style="font-size:12px;color:var(--accent2);margin-top:5px;min-height:16px;text-align:right;font-weight:600"></div>
         </div>
-        ${numField('목표 연평균 수익률 (%)','inv2-cagr','8','',true)}
-        ${numField('투자 기간 (년)','inv2-years','10','',true)}
+        ${numField('목표 연평균 수익률 (%)','inv2-cagr','8','',true,true)}
+        ${numField('투자 기간 (년)','inv2-years','10','',true,true)}
         ${btn()} ${resultBox()}`;
       window.toggleInvContrib = () => {
         const tog = document.getElementById('inv2-contrib-toggle');
@@ -1803,8 +1822,11 @@ function buildInvest(b) {
         tog.style.borderColor = isMonth ? 'var(--accent)' : 'var(--border)';
       };
       window.doCalc = () => {
+        ['inv2-principal','inv2-cagr','inv2-years'].forEach(fieldClear);
         const P=getMan('inv2-principal'), r=getNum('inv2-cagr'), Y=getNum('inv2-years');
-        if(!P||!r||!Y) return;
+        if(!P) { fieldError('inv2-principal','시작 원금을 입력해주세요'); return; }
+        if(!r) { fieldError('inv2-cagr','수익률을 입력해주세요'); return; }
+        if(!Y) { fieldError('inv2-years','투자 기간을 입력해주세요'); return; }
         const C=getMan('inv2-contrib')||0;
         const contribMode=document.getElementById('inv2-contrib-toggle').dataset.mode;
         const rate=r/100;
@@ -1839,15 +1861,16 @@ function buildInvest(b) {
 // ── 취득세 ──
 function buildAcqutax(b) {
   b.innerHTML = `
-    ${manField('취득 금액','acq-price','50,000')}
+    ${manField('취득 금액','acq-price','50,000',true)}
     ${selectField('주택 수 (취득 후)','acq-count',[{v:'1',l:'1주택 (무주택자)'},{v:'2',l:'2주택'},{v:'3',l:'3주택 이상'}])}
     ${selectField('주택 유형','acq-type',[{v:'under6',l:'6억 이하'},{v:'6to9',l:'6억 초과 ~ 9억 이하'},{v:'over9',l:'9억 초과'}])}
     ${btn()} ${resultBox()}`;
   window.doCalc = () => {
+    fieldClear('acq-price');
     const price=getMan('acq-price');
     const count=document.getElementById('acq-count').value;
     const type=document.getElementById('acq-type').value;
-    if(!price) return;
+    if(!price) { fieldError('acq-price','취득 금액을 입력해주세요'); return; }
     let rate;
     if(count==='1') { rate=type==='under6'?0.01:type==='6to9'?0.01+(price/1e8-6)/30*0.02:0.03; }
     else if(count==='2') { rate=0.08; }
@@ -1868,12 +1891,14 @@ function buildAcqutax(b) {
 // ── BMI ──
 function buildBmi(b) {
   b.innerHTML = `
-    <div class="field-row">${numField('키 (cm)','bmi-h','170','',true)}${numField('체중 (kg)','bmi-w','65','',true)}</div>
+    <div class="field-row">${numField('키 (cm)','bmi-h','170','',true,true)}${numField('체중 (kg)','bmi-w','65','',true,true)}</div>
     ${btn()} ${resultBox()}`;
   window.doCalc = () => {
+    ['bmi-h','bmi-w'].forEach(fieldClear);
     const h=getNum('bmi-h')/100;
     const w=getNum('bmi-w');
-    if(!h||!w) return;
+    if(!h) { fieldError('bmi-h','키를 입력해주세요'); return; }
+    if(!w) { fieldError('bmi-w','체중을 입력해주세요'); return; }
     const bmi=w/(h*h);
     let cat,col;
     if(bmi<18.5){cat='저체중';col='var(--accent)'}
@@ -1892,9 +1917,9 @@ function buildBmi(b) {
 // ── 하루 권장 칼로리 ──
 function buildCalorie(b) {
   b.innerHTML = `
-    <div class="field-row">${numField('나이','cal-age','30')}
+    <div class="field-row">${numField('나이','cal-age','30','',false,true)}
     <div class="field"><label>성별</label><div class="radio-group"><label><input type="radio" name="cal-sex" value="m" checked><span>남</span></label><label><input type="radio" name="cal-sex" value="f"><span>여</span></label></div></div></div>
-    <div class="field-row">${numField('키 (cm)','cal-h','170','',true)}${numField('체중 (kg)','cal-w','65','',true)}</div>
+    <div class="field-row">${numField('키 (cm)','cal-h','170','',true,true)}${numField('체중 (kg)','cal-w','65','',true,true)}</div>
     ${selectField('활동량','cal-act',[
       {v:'1.2',l:'거의 안 함 (좌식)'},
       {v:'1.375',l:'가벼운 운동 (주 1-3회)'},
@@ -1904,12 +1929,15 @@ function buildCalorie(b) {
     ])}
     ${btn()} ${resultBox()}`;
   window.doCalc = () => {
+    ['cal-age','cal-h','cal-w'].forEach(fieldClear);
     const age=getNum('cal-age');
     const h=getNum('cal-h');
     const w=getNum('cal-w');
     const sex=document.querySelector('input[name=cal-sex]:checked').value;
     const act=+document.getElementById('cal-act').value;
-    if(!age||!h||!w) return;
+    if(!age) { fieldError('cal-age','나이를 입력해주세요'); return; }
+    if(!h) { fieldError('cal-h','키를 입력해주세요'); return; }
+    if(!w) { fieldError('cal-w','체중을 입력해주세요'); return; }
     const bmr=sex==='m'?(10*w)+(6.25*h)-(5*age)+5:(10*w)+(6.25*h)-(5*age)-161;
     const tdee=bmr*act;
     showResult(`<div class="result-main">${Math.round(tdee)}<span style="font-size:16px;color:var(--text2)">kcal</span></div>
@@ -1922,7 +1950,7 @@ function buildCalorie(b) {
 // ── 러닝 심박수 ──
 function buildZone2(b) {
   b.innerHTML = `
-    ${numField('나이','z2-age','30')}
+    ${numField('나이','z2-age','30','',false,true)}
     <div class="field"><label>공식</label>
       <div class="radio-group">
         <label><input type="radio" name="z2-formula" value="220" checked><span>220-나이</span></label>
@@ -1972,7 +2000,7 @@ function buildPace(b) {
     const mode=document.getElementById('pace-mode').value;
     const el=document.getElementById('pace-inputs');
     const distBtns=[{l:'5K',v:'5'},{l:'10K',v:'10'},{l:'하프',v:'21.0975'},{l:'풀',v:'42.195'}];
-    const distField=`<div class="field"><label>거리 (km)</label>
+    const distField=`<div class="field"><label>거리 (km)<span class="req">*</span></label>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px">
         ${distBtns.map(d=>`<button onclick="paceSetDist('${d.v}')" id="pdist-${d.v}"
           style="padding:10px 0;border-radius:10px;border:1.5px solid var(--border);background:var(--surface2);color:var(--text2);font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s">${d.l}</button>`).join('')}
@@ -1995,9 +2023,9 @@ function buildPace(b) {
         if(b){b.style.background='var(--surface2)';b.style.color='var(--text2)';b.style.borderColor='var(--border)';}
       });
     };
-    if(mode==='pace') el.innerHTML=`${distField}${numField('시간 (분)','p-time','30','',true)}`;
-    else if(mode==='time') el.innerHTML=`${distField}<div class="field"><label>페이스 (분 : 초 /km)</label><div class="field-row"><input type="text" inputmode="numeric" id="p-pmin" placeholder="5" style="${paceInStyle}"><input type="text" inputmode="numeric" id="p-psec" placeholder="30" style="${paceInStyle}"></div></div>`;
-    else el.innerHTML=`${numField('시간 (분)','p-time','60','',true)}<div class="field"><label>페이스 (분 : 초 /km)</label><div class="field-row"><input type="text" inputmode="numeric" id="p-pmin" placeholder="5" style="${paceInStyle}"><input type="text" inputmode="numeric" id="p-psec" placeholder="30" style="${paceInStyle}"></div></div>`;
+    if(mode==='pace') el.innerHTML=`${distField}${numField('시간 (분)','p-time','30','',true,true)}`;
+    else if(mode==='time') el.innerHTML=`${distField}<div class="field"><label>페이스 (분 : 초 /km)<span class="req">*</span></label><div class="field-row"><input type="text" inputmode="numeric" id="p-pmin" placeholder="5" style="${paceInStyle}"><input type="text" inputmode="numeric" id="p-psec" placeholder="30" style="${paceInStyle}"></div></div>`;
+    else el.innerHTML=`${numField('시간 (분)','p-time','60','',true,true)}<div class="field"><label>페이스 (분 : 초 /km)<span class="req">*</span></label><div class="field-row"><input type="text" inputmode="numeric" id="p-pmin" placeholder="5" style="${paceInStyle}"><input type="text" inputmode="numeric" id="p-psec" placeholder="30" style="${paceInStyle}"></div></div>`;
   }
   document.getElementById('pace-mode').addEventListener('change',renderPaceInputs);
   renderPaceInputs();
@@ -2019,7 +2047,10 @@ function buildPace(b) {
       const ps=+(document.getElementById('p-psec')?.value||0);
       paceSecPerKm=pm*60+ps; dist=totalMin*60/paceSecPerKm;
     }
-    if(!paceSecPerKm||!dist) return;
+    if(document.getElementById('p-dist')) fieldClear('p-dist');
+    if(document.getElementById('p-time')) fieldClear('p-time');
+    if(!dist) { if(document.getElementById('p-dist')) fieldError('p-dist','거리를 입력해주세요'); return; }
+    if(!paceSecPerKm) { if(document.getElementById('p-time')) fieldError('p-time','시간을 입력해주세요'); return; }
     const pm=Math.floor(paceSecPerKm/60), ps=Math.round(paceSecPerKm%60);
     const speedKmh=3600/paceSecPerKm;
     const raceRows=races.map(r=>{const t=paceSecPerKm*r.km;const h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=Math.round(t%60);return `<div class="result-row"><span class="rk">${r.name}</span><span class="rv">${h>0?h+'시간 ':''}${m}분 ${s}초</span></div>`;}).join('');
@@ -2045,13 +2076,15 @@ function buildPace(b) {
 // ── 1RM ──
 function buildOrm(b) {
   b.innerHTML = `
-    ${numField('무게 (kg)','orm-weight','80','',true)}
-    ${numField('반복 횟수','orm-reps','5')}
+    ${numField('무게 (kg)','orm-weight','80','',true,true)}
+    ${numField('반복 횟수','orm-reps','5','',false,true)}
     ${btn()} ${resultBox()}`;
   window.doCalc = () => {
+    ['orm-weight','orm-reps'].forEach(fieldClear);
     const w=getNum('orm-weight');
     const r=getNum('orm-reps');
-    if(!w||!r) return;
+    if(!w) { fieldError('orm-weight','무게를 입력해주세요'); return; }
+    if(!r) { fieldError('orm-reps','반복 횟수를 입력해주세요'); return; }
     const epley=w*(1+r/30);
     const brzycki=w*(36/(37-r));
     const orm=(epley+brzycki)/2;
@@ -2070,13 +2103,14 @@ function buildOrm(b) {
 // ── 물 섭취량 ──
 function buildWater(b) {
   b.innerHTML = `
-    ${numField('체중 (kg)','wat-weight','65','',true)}
+    ${numField('체중 (kg)','wat-weight','65','',true,true)}
     ${selectField('활동량','wat-act',[{v:'0',l:'보통 (비활동적)'},{v:'500',l:'가벼운 운동 (주 1-3회)'},{v:'700',l:'보통 운동 (주 3-5회)'},{v:'1000',l:'활발한 운동 (주 6-7회)'}])}
     ${btn()} ${resultBox()}`;
   window.doCalc = () => {
+    fieldClear('wat-weight');
     const w=getNum('wat-weight');
     const extra=+document.getElementById('wat-act').value;
-    if(!w) return;
+    if(!w) { fieldError('wat-weight','체중을 입력해주세요'); return; }
     const base=w*33;
     const total=base+extra;
     const cups=Math.ceil(total/200);
@@ -2090,9 +2124,9 @@ function buildWater(b) {
 // ── 팁 계산기 ──
 function buildTip(b) {
   b.innerHTML = `
-    ${numField('결제 금액 (원)','tip-amount','50,000')}
+    ${numField('결제 금액 (원)','tip-amount','50,000','',false,true)}
     <div class="field">
-      <label>팁 비율</label>
+      <label>팁 비율<span class="req">*</span></label>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px">
         ${[10,15,18,20].map(p=>`
           <button onclick="tipSetPct(${p})" id="tip-${p}"
@@ -2210,8 +2244,13 @@ function buildUnit(b) {
           </button>`).join('')}
       </div>
 
-      ${numField('변환할 값','unit-val','1','',true)}
+      ${numField('변환할 값','unit-val','1','',true,true)}
 
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:4px">
+        <span style="font-size:11px;color:var(--text3);font-weight:600">변환 전</span>
+        <span></span>
+        <span style="font-size:11px;color:var(--text3);font-weight:600">변환 후</span>
+      </div>
       <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:16px">
         <select id="unit-from" onchange="unitFromChange()" style="${selStyle}">${unitOpts(fromUnit)}</select>
         <button onclick="unitSwap()"
@@ -2236,8 +2275,9 @@ function buildUnit(b) {
     renderUnit();
   };
   window.doCalc = () => {
+    fieldClear('unit-val');
     const val = getNum('unit-val');
-    if(!val && val!==0) return;
+    if(!val && val!==0) { fieldError('unit-val','변환할 값을 입력해주세요'); return; }
     const cat = CATS[activeCat];
     const fromLabel = cat.units.find(u=>u.k===fromUnit)?.l || fromUnit;
     const toLabel   = cat.units.find(u=>u.k===toUnit)?.l   || toUnit;
@@ -2264,10 +2304,10 @@ function buildUnit(b) {
 // ── 자동차 할부 ──
 function buildCarloan(b) {
   b.innerHTML = `
-    ${manField('차량 가격','cl-price','3,000')}
+    ${manField('차량 가격','cl-price','3,000',true)}
     ${manField('선수금 (계약금)','cl-down','500')}
-    ${periodField('할부 기간','cl-months','60','5')}
-    ${numField('연 이자율 (%)','cl-rate','5.9','',true)}
+    ${periodField('할부 기간','cl-months','60','5',true)}
+    ${numField('연 이자율 (%)','cl-rate','5.9','',true,true)}
     ${btn()} ${resultBox()}`;
   window.doCalc = () => {
     ['cl-price','cl-months','cl-rate'].forEach(fieldClear);

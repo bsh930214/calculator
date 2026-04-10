@@ -2232,7 +2232,7 @@ function buildUnit(b) {
     const unitOpts = (sel) => cat.units.map(u=>
       `<option value="${u.k}" ${u.k===sel?'selected':''}>${u.l}</option>`
     ).join('');
-    const selStyle = `width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:11px 32px 11px 12px;color:var(--text);font-size:14px;font-family:inherit;outline:none;appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%226%27 fill=%27none%27%3E%3Cpath d=%27M1 1l4 4 4-4%27 stroke=%27%239499aa%27 stroke-width=%271.5%27 stroke-linecap=%27round%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 10px center;`;
+    const selStyle = `width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 36px 13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;appearance:none;-webkit-appearance:none;background-image:url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2710%27 height=%276%27 fill=%27none%27%3E%3Cpath d=%27M1 1l4 4 4-4%27 stroke=%27%239499aa%27 stroke-width=%271.5%27 stroke-linecap=%27round%27/%3E%3C/svg%3E');background-repeat:no-repeat;background-position:right 12px center;`;
 
     b.innerHTML = `
       <!-- 카테고리 탭 -->

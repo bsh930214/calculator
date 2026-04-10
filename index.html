@@ -565,14 +565,14 @@ function togglePeriod(id) {
 function periodField(label, id, phM, phY, req=false) {
   const reqMark = req ? '<span class="req">*</span>' : '';
   return `<div class="field"><label>${label}${reqMark}</label>
-    <div id="${id}-wrap" style="display:flex;align-items:stretch;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .2s;">
+    <div style="position:relative">
       <button id="${id}-toggle" type="button" data-mode="month" data-placeholder_m="${phM}" data-placeholder_y="${phY}"
         onclick="togglePeriod('${id}')"
-        style="flex-shrink:0;width:46px;display:flex;align-items:center;justify-content:center;background:var(--surface3);border:none;border-right:1px solid var(--border);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;transition:color .2s;">개월</button>
+        style="position:absolute;left:8px;top:50%;transform:translateY(-50%);background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;transition:all .2s;font-family:inherit;z-index:1;">개월</button>
       <input type="text" inputmode="numeric" id="${id}" placeholder="${phM}"
         oninput="fmtInput(this)"
-        style="flex:1;background:transparent;border:none;padding:13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;min-width:0;"
-        onfocus="document.getElementById('${id}-wrap').style.borderColor='var(--accent)'" onblur="document.getElementById('${id}-wrap').style.borderColor='var(--border)'">
+        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px 13px 68px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
     </div>
   </div>`;
 }
@@ -636,34 +636,33 @@ function selectField(label, id, options) {
 // 날짜 필드 — 왼쪽 캘린더 버튼, 오른쪽 네이티브 아이콘 숨김
 function dateField(label, id, req=false) {
   return `<div class="field"><label>${label}${req?'<span class="req">*</span>':''}</label>
-    <div id="${id}-wrap" style="display:flex;align-items:stretch;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .2s;">
+    <div style="position:relative">
       <button onclick="document.getElementById('${id}').showPicker?document.getElementById('${id}').showPicker():document.getElementById('${id}').click()"
-        style="flex-shrink:0;width:46px;display:flex;align-items:center;justify-content:center;background:var(--surface3);border:none;border-right:1px solid var(--border);cursor:pointer;font-size:18px;transition:opacity .15s"
-        onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">📅</button>
+        style="position:absolute;left:8px;top:50%;transform:translateY(-50%);background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:16px;cursor:pointer;transition:opacity .15s;z-index:1;line-height:1;"
+        onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'">📅</button>
       <input type="date" id="${id}"
-        style="flex:1;background:transparent;border:none;padding:13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;color-scheme:dark;min-width:0;"
-        onfocus="document.getElementById('${id}-wrap').style.borderColor='var(--accent)'" onblur="document.getElementById('${id}-wrap').style.borderColor='var(--border)'">
+        style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px 13px 54px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;color-scheme:dark;"
+        onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
     </div>
   </div>`;
 }
 // 필드 에러 표시 / 클리어
 function fieldError(id, msg) {
-  const wrap = document.getElementById(id+'-wrap') || document.getElementById(id);
-  if(!wrap) return;
-  wrap.style.borderColor = 'var(--accent3)';
-  const field = document.getElementById(id)?.closest('.field') || wrap.closest('.field');
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.style.borderColor = 'var(--accent3)';
   let hint = document.getElementById(id+'-err');
   if(!hint) {
     hint = document.createElement('div');
     hint.id = id+'-err';
     hint.style.cssText = 'font-size:11px;color:var(--accent3);margin-top:4px;';
-    field?.appendChild(hint) || wrap.parentNode.appendChild(hint);
+    el.closest('.field')?.appendChild(hint) || el.parentNode.appendChild(hint);
   }
   if(msg) hint.textContent = msg;
 }
 function fieldClear(id) {
-  const wrap = document.getElementById(id+'-wrap') || document.getElementById(id);
-  if(wrap) wrap.style.borderColor = 'var(--border)';
+  const el = document.getElementById(id);
+  if(el) el.style.borderColor = 'var(--border)';
   const hint = document.getElementById(id+'-err');
   if(hint) hint.remove();
 }
@@ -1259,16 +1258,16 @@ function buildDaysfrom(b) {
 
   function dateFieldToday(label, id, req=false) {
     return `<div class="field"><label>${label}${req?'<span class="req">*</span>':''}</label>
-      <div id="${id}-wrap" style="display:flex;align-items:stretch;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;overflow:hidden;transition:border-color .2s;">
+      <div style="position:relative">
         <button onclick="document.getElementById('${id}').showPicker?document.getElementById('${id}').showPicker():document.getElementById('${id}').click()"
-          style="flex-shrink:0;width:46px;display:flex;align-items:center;justify-content:center;background:var(--surface3);border:none;border-right:1px solid var(--border);cursor:pointer;font-size:18px;transition:opacity .15s"
-          onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">📅</button>
+          style="position:absolute;left:8px;top:50%;transform:translateY(-50%);background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:16px;cursor:pointer;transition:opacity .15s;z-index:1;line-height:1;"
+          onmouseover="this.style.opacity='.7'" onmouseout="this.style.opacity='1'">📅</button>
         <input type="date" id="${id}"
-          style="flex:1;background:transparent;border:none;padding:13px 8px;color:var(--text);font-size:15px;font-family:inherit;outline:none;appearance:none;-webkit-appearance:none;min-width:0;"
-          onfocus="document.getElementById('${id}-wrap').style.borderColor='var(--accent)'" onblur="document.getElementById('${id}-wrap').style.borderColor='var(--border)'">
+          style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 58px 13px 54px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;appearance:none;-webkit-appearance:none;"
+          onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
         <button onclick="document.getElementById('${id}').value=dfTodayStr()"
-          style="flex-shrink:0;padding:0 12px;background:var(--surface3);border:none;border-left:1px solid var(--border);font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .2s"
-          onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text2)'">오늘</button>
+          style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .2s"
+          onmouseover="this.style.borderColor='var(--accent)';this.style.color='var(--accent)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">오늘</button>
       </div>
     </div>`;
   }
@@ -1801,14 +1800,14 @@ function buildInvest(b) {
       b.innerHTML = `${tabsHTML()}
         ${manField('시작 원금','inv2-principal','1,000',true)}
         <div class="field"><label>적립 금액</label>
-          <div id="inv2-contrib-wrap" style="display:flex;align-items:stretch;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;transition:border-color .2s;overflow:hidden;">
+          <div style="position:relative">
             <button id="inv2-contrib-toggle" type="button" data-mode="month"
               onclick="toggleInvContrib()"
-              style="flex-shrink:0;width:46px;background:var(--surface3);border:none;border-right:1px solid var(--border);font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;transition:all .2s;">월</button>
+              style="position:absolute;left:8px;top:50%;transform:translateY(-50%);background:var(--surface3);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;font-family:inherit;transition:all .2s;z-index:1;">월</button>
             <input type="text" inputmode="numeric" id="inv2-contrib" placeholder="0"
               oninput="fmtInput(this);updateKo('inv2-contrib')"
-              style="flex:1;background:transparent;border:none;padding:13px 14px;color:var(--text);font-size:15px;font-family:inherit;outline:none;"
-              onfocus="document.getElementById('inv2-contrib-wrap').style.borderColor='var(--accent)'" onblur="document.getElementById('inv2-contrib-wrap').style.borderColor='var(--border)'">
+              style="width:100%;background:var(--surface2);border:1.5px solid var(--border);border-radius:10px;padding:13px 14px 13px 68px;color:var(--text);font-size:15px;font-family:inherit;outline:none;transition:border-color .2s;"
+              onfocus="this.style.borderColor='var(--accent)'" onblur="this.style.borderColor='var(--border)'">
           </div>
           <div id="inv2-contrib-ko" style="font-size:12px;color:var(--accent2);margin-top:5px;min-height:16px;text-align:right;font-weight:600"></div>
         </div>
